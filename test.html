@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title></title>
+</head>
+<body>
+	<div id="con" style="width:800px; border:1px solid #000000;" >
+		
+
+
+	</div>
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+<script>
+	var conversation1 = {"response":"Hello. How are you?",
+					"options":[
+						{"id":"1","text":"Why do you ask?","response":"I was just being polite.", "options":"null"},
+						{"id":"2","text":"Good","response":"Why good?",
+							"options":[
+								{"id":"2a","text":"None of your business","response":"Fine.", "options":"null"},
+								{"id":"2b","text":"I won the lottery","response":"Congrats.", "options":"null"}
+							]},
+						{"id":"3","text":"Terrible","response":"Sorry to hear that.", "options":"null"},
+					], "triggers":["advanceConversation"]};
+	var conversation2 = {"response":"Hello. I believe we've met before?",
+					"options":[
+						{"id":"1","text":"I do not believe we have.","response":"Really? Strange. Have a good day then.", "options":"null"},
+						{"id":"2","text":"How is it going, Bob?","response":"Good, and how about yourself?",
+							"options":[
+								{"id":"2a","text":"Not so well","response":"Would you mind telling me why?",
+									"options":[
+										{"id":"2a1","text":"Hard to explain","response":"Well, good luck then.", "options":"null"},
+										{"id":"2a2","text":"I lost all my savings while trading cryptocurrency","response":"You are a fool.", "options":"null"}
+									]},
+								{"id":"2b","text":"Incredibly","response":"Conrgats.", "options":"null"}
+							]}, 
+						{"id":"3","text":"Get out of my sight Bob. I never want to see you again.","response":"Sorry to hear that.", "options":"null", }
+					]};
+	//var lastSelectedOption="";	
+	function startconversation(conversation, name) {
+		var theName = name
+		var t = conversation.response;
+		console.log(t);
+		$("#con").append("<p>" + name + ": " + t +"</p>");
+
+		for (var i = 0; i < conversation.options.length; i++) {
+		//	$("#con").append("<p>" + i + "</p>");
+
+			$("#con").append("<button class='btnOptions' data-jsonoption='"+  JSON.stringify(conversation.options[i])  +"' data-optionid='"+ conversation.options[i].id +"' id='btn_"+ i +"''>" + conversation.options[i].text +"</button>");
+
+			//$("#con").append(			
+
+		}
+
+ 							
+
+		$(".btnOptions").on("click", function(){
+			console.log($(this).data("jsonoption"));
+			
+			$("#con").append("<p>" + " You: " + $(this).data("jsonoption").text +"</p>")
+			$("button.btnOptions").remove();
+		
+			if ($(this).data("jsonoption").options != "null") {
+				startconversation($(this).data("jsonoption"), theName);
+				for (var n = 0; n < conversation.triggers.length; n++) {
+					if (n == "advanceConversation") {
+						console.log("hello");
+						//startconversation(conversation2, name)
+					}
+				}
+			}
+			if ($(this).data("jsonoption").options == "null") {
+				$("#con").append("<p>" + name + ": " + $(this).data("jsonoption").response +"</p>");
+				$("#con").append("<p>" + "The conversation has ended." + "</p>");
+
+			}
+
+		});
+
+
+
+
+
+
+		/* for (i in conversation.options) {
+			console.log(i);
+			console.log(conversation.options[i].response)
+			$("#con").append("<p>" + i + "</p>");
+			$("#con").append("<button>" + conversation.options[i].text +"</button>").click(function(){
+				$("#con").append("<p>" + i + "</p>")
+				console.log(conversation.options[i]);
+				continueconversation(conversation.options[i]);
+			});
+		} */
+	};
+	//	conversation.options.each(function(showoptions))
+		//	$("#con").append("<button>" + text +"</button>").click(continueconversation());
+		
+
+	function continueconversation(input) {
+		console.log(input)
+		$("#con").append("<p>" + input.response +"</p>");
+		if (input.options != "null") {
+			for (i in input.options) {
+				console.log(i);
+				console.log(input.options[i].response)
+				$("#con").append("<p>" + i + "</p>");
+				$("#con").append("<button>" + input.options[i].text +"</button>").click(function(){
+					$("#con").append("<p>" + i + "</p>")
+					console.log(input.options[i]);
+					continueconversation(input.options[i]);
+				});
+			}
+		}
+		else if (input.options == "null") {
+			$("#con").append("<p>" + "End of conversation." + "</p>")
+		};
+
+	};
+		
+
+
+	startconversation(conversation2, "Bob");
+</script>
+</body>
+</html>

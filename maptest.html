@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title> MapTest </title>
+</head>
+<body>
+	<div id="log" style="width:800px; border:1px solid #000000;" >
+
+	</div>
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+<script type="text/javascript">
+	var temple = {"rooms":[
+		{"id":"1","roomName":"Main Room","description":"The temple is tall and spacious, with several smaller rooms connected to it.","connectedTo":["2","3","4"]},
+		{"id":"2", "roomName":"Storage room","description":"As would be expected, the storage room contains some food and monk robes. Surprisingly, a well-made dagger can be seen on a table.","connectedTo":[1]},
+		{"id":"3", "roomName":"Altar Room","description":"The altar room has a few books of value, and contains a ladder to an attic above..","connectedTo":[1,5]},
+		{"id":"4", "roomName":"Cellar","description":"Nothing seems to be of interest in the cellar.","connectedTo":[1]},
+		{"id":"5", "roomName":"Attic","description":"The attic is musty and cramped.","connectedTo":[1,6]}
+	]}
+
+	function enterDungeon(dungeon) {
+		$("#log").append("<p>" + dungeon.rooms[0].description + "</p>");
+		var currentRoom = dungeon.rooms[0];
+		console.log(currentRoom);
+		for (var i = 0; i < currentRoom.connectedTo.length; i++) {
+		//	$("#con").append("<p>" + i + "</p>");
+			console.log(currentRoom.connectedTo[i])
+			
+			$("#log").append("<button class='btnOptions' data-jsonoption='"+  JSON.stringify(currentRoom.connectedTo[i])  +"' data-optionid='"+ currentRoom.connectedTo[i].id +"' id='btn_"+ i +"''>" + currentRoom.connectedTo[i].description +"</button>");
+
+			//$("#con").append(			
+
+		}
+	}
+
+	enterDungeon(temple);
+
+
+</script>
+</body>
+</html>
