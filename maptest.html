@@ -23,15 +23,29 @@
 		$("#log").append("<p>" + dungeon.rooms[0].description + "</p>");
 		var currentRoom = dungeon.rooms[0];
 		console.log(currentRoom);
-		for (var i = 0; i < currentRoom.connectedTo.length; i++) {
+		//for (var i = 0; i < currentRoom.connectedTo.length; i++) {
 		//	$("#con").append("<p>" + i + "</p>");
-			console.log(currentRoom.connectedTo[i])
+		//	console.log(currentRoom.connectedTo[i])
 			
-			$("#log").append("<button class='btnOptions' data-jsonoption='"+  JSON.stringify(currentRoom.connectedTo[i])  +"' data-optionid='"+ currentRoom.connectedTo[i].id +"' id='btn_"+ i +"''>" + currentRoom.connectedTo[i].description +"</button>");
-
+		//	for (r in dungeon.rooms) {
+		//		console.log(r);
+		//		if (r.id == currentRoom.connectedTo[i]) {
+		//			$("#log").append("<button>" + r.roomName + "</button>");
+		//		}
+		//	}
 			//$("#con").append(			
 
-		}
+		//}
+		for (i in dungeon.rooms) {
+			console.log(dungeon.rooms);
+			console.log(dungeon.rooms[i].id);
+			console.log(currentRoom.connectedTo.includes(dungeon.rooms[i].id))
+			console.log(dungeon.rooms[i].roomName);
+			if (currentRoom.connectedTo.includes(dungeon.rooms[i].id) == true) {
+				console.log("Hello")
+				$("log").append("<button class = 'movementOptions' id = i>" + "Enter the " + dungeon.rooms[i].roomName + "</button>")
+			}
+		} 
 	}
 
 	enterDungeon(temple);
