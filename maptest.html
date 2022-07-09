@@ -1,54 +1,106 @@
+
 <!DOCTYPE html>
 <html>
 <head>
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<title> MapTest </title>
+	<style>
+		#map {
+			background-color: lightgrey;
+ 		    width: 1000px;
+ 		    height: 550px;
+ 		    border: 5px solid green;
+  		    padding: 20px;
+  		    position:absolute;
+  		    right: 100px;
+		}
+		#log {
+			position:absolute;
+  		    left: 30px;
+  		    max-width: 400px;
+		}
+		#buttonMenu {
+			background-color: lightgrey;
+			position: absolute;
+			width: 600px;
+			height: 75px;
+			border: 5px solid black;
+			bottom: 50px;
+			right: 300px;
+		}
+		#avatarBox {
+			background-color: lightgrey;
+			position: absolute;
+			width: 80px;
+			height: 80px;
+			border: 2px solid grey;
+			bottom: 50px;
+			right: 1025px;
+		}
+
+	</style>
 </head>
 <body>
 	<div id="log" style="width:800px; border:1px solid #000000;" >
 
 	</div>
+	<div id="map">
+  		
+	</div>
+
+	<div id="buttonMenu">
+
+	</div>
+
+	<div id = avatarBox> </div>
 	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
 <script type="text/javascript">
 	var temple = {"rooms":[
-		{"id":"1","roomName":"Main Room","description":"The temple is tall and spacious, with several smaller rooms connected to it.","connectedTo":["2","3","4"]},
-		{"id":"2", "roomName":"Storage room","description":"As would be expected, the storage room contains some food and monk robes. Surprisingly, a well-made dagger can be seen on a table.","connectedTo":[1]},
-		{"id":"3", "roomName":"Altar Room","description":"The altar room has a few books of value, and contains a ladder to an attic above..","connectedTo":[1,5]},
-		{"id":"4", "roomName":"Cellar","description":"Nothing seems to be of interest in the cellar.","connectedTo":[1]},
-		{"id":"5", "roomName":"Attic","description":"The attic is musty and cramped.","connectedTo":[1,6]}
-	]}
+		{"id":"1","roomName":"Main Room","description":"The main room is tall and spacious, with several smaller rooms connected to it.","connectedTo":["2","3","4"],"firstTime":"True","lowX":"100"},
+		{"id":"2", "roomName":"Storage room","description":"As would be expected, the storage room contains some food and monk robes. Surprisingly, a well-made dagger can be seen on a table.","connectedTo":["1"]},
+		{"id":"3", "roomName":"Altar Room","description":"The altar room has a few books of value, and contains a ladder to an attic above..","connectedTo":["1","5"]},
+		{"id":"4", "roomName":"Cellar","description":"Nothing seems to be of interest in the cellar.","connectedTo":["1"]},
+		{"id":"5", "roomName":"Attic","description":"The attic is musty and cramped.","connectedTo":["1","6"]}
+	], "firstVisit": "true", "firstVisitDescription":"You enter a temple which was clearly grand at one point. No worshippers are to be seen."}
 
-	function enterDungeon(dungeon) {
-		$("#log").append("<p>" + dungeon.rooms[0].description + "</p>");
-		var currentRoom = dungeon.rooms[0];
+	function enterDungeon(dungeon, room) {
+		console.log(dungeon.firstVisit);
+		if (dungeon.firstVisit=="true") {
+			$("#log").prepend("<p>" + dungeon.firstVisitDescription + "</p>");
+			dungeon.firstVisit="false"
+		}
+		console.log(room)
+		var currentRoom = dungeon.rooms[room-1];
 		console.log(currentRoom);
-		//for (var i = 0; i < currentRoom.connectedTo.length; i++) {
-		//	$("#con").append("<p>" + i + "</p>");
-		//	console.log(currentRoom.connectedTo[i])
-			
-		//	for (r in dungeon.rooms) {
-		//		console.log(r);
-		//		if (r.id == currentRoom.connectedTo[i]) {
-		//			$("#log").append("<button>" + r.roomName + "</button>");
-		//		}
-		//	}
-			//$("#con").append(			
 
-		//}
-		for (i in dungeon.rooms) {
-			console.log(dungeon.rooms);
-			console.log(dungeon.rooms[i].id);
-			console.log(currentRoom.connectedTo.includes(dungeon.rooms[i].id))
-			console.log(dungeon.rooms[i].roomName);
-			if (currentRoom.connectedTo.includes(dungeon.rooms[i].id) == true) {
-				console.log("Hello")
-				$("log").append("<button class = 'movementOptions' id = i>" + "Enter the " + dungeon.rooms[i].roomName + "</button>")
+			$("#log").prepend("<p>" + currentRoom.description + "</p>");
+			for (i in dungeon.rooms) {
+				console.log(dungeon.rooms[i].id);
+				console.log(dungeon.rooms[i].roomName);
+				console.log(dungeon.rooms[i].connectedTo)
+				console.log(currentRoom.connectedTo.includes(dungeon.rooms[i].id))
+				if (currentRoom.connectedTo.includes(dungeon.rooms[i].id) == true) {
+					console.log(dungeon.rooms[i])
+					$("#log").prepend("<button class = 'movementOptions' id = a>" + "Enter the " + dungeon.rooms[i].roomName + "</button>");
+					$("#a").attr("id",i)
+				}
 			}
-		} 
+		$(".movementOptions").on("click", function(){
+			console.log($(this))
+			console.log($(this).attr("id"))
+			var rightIdInt = parseInt($(this).attr("id"))+1;
+			var rightId = rightIdInt.toString()
+			console.log(rightId);
+			$("button.movementOptions").remove();
+			//$("#log").append("<p>" + "You enter the " + document.getElementById(#rightId).roomName + "</p>");
+			enterDungeon(dungeon, rightId);
+		});
+
+		 
 	}
 
-	enterDungeon(temple);
+	enterDungeon(temple, "1");
 
 
 </script>
