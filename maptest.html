@@ -22,6 +22,9 @@
 		.roomActive {
 			background-color: white;
 		}
+		.previousRoom {
+			background-color: grey;
+		}
 
 		#mapRooms{
 			width: 3600px;
@@ -115,6 +118,18 @@
 <script type="text/javascript">
 	var temple = {"rooms":[
 			{"id":"1","roomName":"Main Room","description":"The main room is tall and spacious, with several smaller rooms connected to it.","connectedTo":["2","3","4"],"firstTime":"True",
+				"width":"500","height":"500","x":"1550","y":"1550","monsters":[{},{},{}]},
+			{"id":"2", "roomName":"Storage room","description":"As would be expected, the storage room contains some food and monk robes, and contains a ladder to an attic above.","connectedTo":["1","5"],
+				"width":"300","height":"400","x":"1250","y":"1600"},
+			{"id":"3", "roomName":"Altar Room","description":"The altar room has a few books of value.","connectedTo":["1"],"majorConnections":[{"connected":"templeUnderground","startingRoom":"1"}],
+				"width":"300","height":"200","x":"1650","y":"1350"},
+			{"id":"4", "roomName":"Garden","description":"Nothing seems to be of interest in the garden.","connectedTo":["1"],
+				"width":"400","height":"500","x":"2050","y":"1355"},
+			{"id":"5", "roomName":"Attic","description":"The attic is musty and cramped.","connectedTo":["2"],
+				"width":"250","height":"350","x":"1275","y":"1625"}
+		], "firstVisit": "true", "firstVisitDescription":"You enter a temple which was clearly grand at one point. No worshippers are to be seen."}
+	var templeUnderground = {"rooms":[
+			{"id":"1","roomName":"Cellar","description":"The cellar is surprisingly spacious. A .","connectedTo":["2","3","4"],"firstTime":"True",
 				"width":"500","height":"500","x":"1550","y":"1550"},
 			{"id":"2", "roomName":"Storage room","description":"As would be expected, the storage room contains some food and monk robes, and contains a ladder to an attic above.","connectedTo":["1","5"],
 				"width":"300","height":"400","x":"1250","y":"1600"},
@@ -127,7 +142,7 @@
 		], "firstVisit": "true", "firstVisitDescription":"You enter a temple which was clearly grand at one point. No worshippers are to be seen."}
 
 	function enterDungeon(dungeon, room) {
-		
+
 		//console.log(dungeon.firstVisit);
 		if (dungeon.firstVisit=="true") {
 			$("#log").prepend("<p>" + dungeon.firstVisitDescription + "</p>");
@@ -135,24 +150,39 @@
 		}
 		//console.log(room)
 		var currentRoom = dungeon.rooms[room-1];
+		// var adj
 		centerOnRoom(currentRoom);
+		$("#r_"+room).addClass("roomActive");
+		$(".roomActive").removeClass("previousRoom");
 		//console.log(currentRoom);
 
-			$("#log").prepend("<p>" + currentRoom.description + "</p>");
-			for (i in dungeon.rooms) {
-				//console.log(dungeon.rooms[i].id);
-				//console.log(dungeon.rooms[i].roomName);
-				//console.log(dungeon.rooms[i].connectedTo)
-				//console.log(currentRoom.connectedTo.includes(dungeon.rooms[i].id))
-				if (currentRoom.connectedTo.includes(dungeon.rooms[i].id) == true) {
-					//console.log(dungeon.rooms[i])
-					$("#log").prepend("<button class = 'movementOptions' id = a>" + "Enter the " + dungeon.rooms[i].roomName + "</button>");
-					$("#a").attr("id",i)
-				}
+		$("#log").prepend("<p>" + currentRoom.description + "</p>");
+		for (i in dungeon.rooms) {
+			//console.log(dungeon.rooms[i].id);
+			//console.log(dungeon.rooms[i].roomName);
+			//console.log(dungeon.rooms[i].connectedTo)
+			//console.log(currentRoom.connectedTo.includes(dungeon.rooms[i].id))
+			if (currentRoom.connectedTo.includes(dungeon.rooms[i].id) == true) {
+				//console.log(dungeon.rooms[i])
+				$("#log").prepend("<button class = 'movementOptions' id = a>" + "Enter the " + dungeon.rooms[i].roomName + "</button>");
+				$("#a").attr("id",i)
 			}
+		}
+		for (i in currentRoom.majorConnections) {
+			console.log("hello")
+			console.log(currentRoom.majorConnections[i].startingRoom);
+			var start = $("#"+currentRoom.majorConnections[i].startingRoom);
+			console.log(start);
+			var newDungeon = currentRoom.majorConnections[i].connected.rooms[start];
+			$("#log").prepend("<button class = 'majorMovementOptions' id = a>" + "Enter the " + room.majorConnections[i] + "</button>");
+			$("#a").attr("id",room.majorConnections[i]);
+		}
+
 		$(".movementOptions").on("click", function(){
 			//console.log($(this))
 			//console.log($(this).attr("id"))
+			$(".roomActive").addClass("previousRoom");
+			$(".roomActive").removeClass("roomActive");
 			var rightIdInt = parseInt($(this).attr("id"), 10)+1;
 			var rightId = rightIdInt.toString()
 			//console.log(rightId);
@@ -160,18 +190,25 @@
 			//$("#log").append("<p>" + "You enter the " + document.getElementById(#rightId).roomName + "</p>");
 			enterDungeon(dungeon, rightId);
 		});
-
-		 
+		$(".majorMovementOptions").on("click", function(){
+			$(".room").fadeOut(1000);
+			$("button.movementOptions").remove();
+			var id = $(this.attr("id"));
+			enterDungeon(room.majorConnections[i], 1)
+		});
 	}
-
-	enterDungeon(temple, "1");
-	for (i in temple.rooms) {
-		//console.log(temple.rooms[i].id);
-		//console.log(temple.rooms[i].roomName);
-		//console.log(temple.rooms[i].connectedTo)
-		// //console.log(currentRoom.connectedTo.includes(temple.rooms[i].id))
-		renderRoom(temple.rooms[i]);	
+	function loadDungeon(dungeon){
+		$("#mapRooms").empty();
+		for (i in dungeon.rooms) {
+			//console.log(dungeon.rooms[i].id);
+			//console.log(dungeon.rooms[i].roomName);
+			//console.log(dungeon.rooms[i].connectedTo)
+			// //console.log(currentRoom.connectedTo.includes(dungeon.rooms[i].id))
+			renderRoom(dungeon.rooms[i]);
+		}
+		enterDungeon(dungeon, "1");	
 	}
+	
 
 	function centerOnRoom(room){
 		/*//console.log("x:")
@@ -195,7 +232,8 @@
 		console.log("xTrans: " + xTrans);
 
 
-		$("#mapRooms").css({"left": ""+xTrans+"px", "top": ""+ yTrans +"px"});
+		// $("#mapRooms").css({"left": ""+xTrans+"px", "top": ""+ yTrans +"px"});
+		$("#mapRooms").animate({left: xTrans+"px",top: yTrans+"px"},1000);
 		//console.log("XXXXXXXXXXXXXXXXXXXXXXXXXXX");
 		//console.log($("#mapRooms").css("left"));
 	}
@@ -203,12 +241,12 @@
 	function renderRoom(room) {
 		var $mapRooms = $("#mapRooms");
 		var rid = room.id
-		var domRoom = $("<div id = "+ rid +" class = 'room' style = 'width:"+ room.width +"px; height:"+ room.height +"px; left:"+room.x+"px; top:"+ room.y +"px;'></div>");
+		var domRoom = $("<div id = 'r_"+ rid +"' class = 'room' style = 'width:"+ room.width +"px; height:"+ room.height +"px; left:"+room.x+"px; top:"+ room.y +"px;'></div>");
 		$mapRooms.append(domRoom);
 	}
 
-	centerOnRoom(temple.rooms[0]);
-
+	
+	loadDungeon(temple);
 </script>
 </body>
 </html>
