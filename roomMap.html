@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title> MapTest </title>
+	<style>
+
+		.room {
+			background-color: black;
+			position: absolute;
+		}
+		.roomActive {
+			background-color: white;
+		}
+		#mapRooms{
+			width: 3600px;
+			height: 3600px;
+			background-color: lightgray;
+			/*border: 1px solid red;*/
+			position: relative;
+			margin-left: auto;
+			margin-right: auto;
+			display: block;
+		}
+
+
+		#map {
+			background-color: lightgrey;
+ 		    width: 800px;
+ 		    height: 500px;
+ 		    border: 2px solid green;
+  		    position:absolute;
+  		    right: 100px;
+		}
+		#log {
+			position:absolute;
+  		    left: 30px;
+  		    max-width: 200px;
+  		    height: 500px;
+  		    overflow-y: scroll;
+  		    overflow-x: hidden;
+		}
+		#buttonMenu {
+			background-color: lightgrey;
+			position: absolute;
+			width: 600px;
+			height: 75px;
+			border: 5px solid black;
+			bottom: 50px;
+			right: 300px;
+		}
+		#avatarBox {
+			background-color: lightgrey;
+			position: absolute;
+			width: 80px;
+			height: 80px;
+			border: 2px solid grey;
+			bottom: 50px;
+			right: 1025px;
+		}
+
+		@media only screen and (max-width: 1199px) {
+		#map {
+			background-color: lightgrey;
+ 		    width: 800px;
+ 		    height: 500px;
+ 		    border: 2px solid green;
+  		    position:absolute;
+  		    right: 0px;
+		}
+		#log {
+			position:absolute;
+  		    left: 0px;
+  		    max-width: 200px;
+		}
+		}
+
+	</style>
+</head>
+<body>
+
+
+	<div id="mapRooms">
+
+
+	</div>
+
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+<script type="text/javascript">
+
+	var temple = {"rooms":[
+			{"id":"1","roomName":"Main Room","description":"The main room is tall and spacious, with several smaller rooms connected to it.","connectedTo":["2","3","4"],"firstTime":"True",
+				"width":"500","height":"500","x":"1550","y":"1550"},
+			{"id":"2", "roomName":"Storage room","description":"As would be expected, the storage room contains some food and monk robes. Surprisingly, a well-made dagger can be seen on a table.","connectedTo":["1","2"],
+				"width":"300","height":"400","x":"1250","y":"1600"},
+			{"id":"3", "roomName":"Altar Room","description":"The altar room has a few books of value, and contains a ladder to an attic above..","connectedTo":["1"],
+				"width":"300","height":"200","x":"1650","y":"1350"},
+			{"id":"4", "roomName":"Garden","description":"Nothing seems to be of interest in the garden.","connectedTo":["1"],
+				"width":"400","height":"500","x":"2050","y":"1355"},
+			{"id":"5", "roomName":"Attic","description":"The attic is musty and cramped.","connectedTo":["1"],
+				"width":"250","height":"350","x":"1275","y":"1625"}
+		], "firstVisit": "true", "firstVisitDescription":"You enter a temple which was clearly grand at one point. No worshippers are to be seen."}
+
+	for (i in temple.rooms) {
+		console.log(temple.rooms[i].id);
+		console.log(temple.rooms[i].roomName);
+		console.log(temple.rooms[i].connectedTo)
+		// console.log(currentRoom.connectedTo.includes(temple.rooms[i].id))
+		renderRoom(temple.rooms[i]);	
+	}
+
+	function renderRoom(room) {
+		var $mapRooms = $("#mapRooms");
+		var rid = room.id
+		var domRoom = $("<div id = "+ rid +" class = 'room' style = 'width:"+ room.width +"px; height:"+ room.height +"px; left:"+room.x+"px; top:"+ room.y +"px;'></div>");
+		$mapRooms.append(domRoom);
+	}
+
+</script>
+</body>
+</html>
