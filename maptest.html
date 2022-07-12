@@ -116,7 +116,7 @@
 
 	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
 <script type="text/javascript">
-	var temple = {"rooms":[
+	var dungeons = {"temple":{"rooms":[
 			{"id":"1","roomName":"Main Room","description":"The main room is tall and spacious, with several smaller rooms connected to it.","connectedTo":["2","3","4"],"firstTime":"True",
 				"width":"500","height":"500","x":"1550","y":"1550","monsters":[{},{},{}]},
 			{"id":"2", "roomName":"Storage room","description":"As would be expected, the storage room contains some food and monk robes, and contains a ladder to an attic above.","connectedTo":["1","5"],
@@ -125,21 +125,21 @@
 				"width":"300","height":"200","x":"1650","y":"1350"},
 			{"id":"4", "roomName":"Garden","description":"Nothing seems to be of interest in the garden.","connectedTo":["1"],
 				"width":"400","height":"500","x":"2050","y":"1355"},
-			{"id":"5", "roomName":"Attic","description":"The attic is musty and cramped.","connectedTo":["2"],
+			{"id":"5", "roomName":"Attic","description":"The attic is musty and cramped.","connectedTo":["2"],"majorConnections":[{"connected":"templeUnderground","startingRoom":"4"}],
 				"width":"250","height":"350","x":"1275","y":"1625"}
-		], "firstVisit": "true", "firstVisitDescription":"You enter a temple which was clearly grand at one point. No worshippers are to be seen."}
-	var templeUnderground = {"rooms":[
+		], "firstVisit": "true", "firstVisitDescription":"You enter a temple which was clearly grand at one point. No worshippers are to be seen."},
+	"templeUnderground":{"rooms":[
 			{"id":"1","roomName":"Cellar","description":"The cellar is surprisingly spacious. A .","connectedTo":["2","3","4"],"firstTime":"True",
-				"width":"500","height":"500","x":"1550","y":"1550"},
+				"width":"200","height":"200","x":"1550","y":"1550"},
 			{"id":"2", "roomName":"Storage room","description":"As would be expected, the storage room contains some food and monk robes, and contains a ladder to an attic above.","connectedTo":["1","5"],
 				"width":"300","height":"400","x":"1250","y":"1600"},
 			{"id":"3", "roomName":"Altar Room","description":"The altar room has a few books of value.","connectedTo":["1"],
 				"width":"300","height":"200","x":"1650","y":"1350"},
-			{"id":"4", "roomName":"Garden","description":"Nothing seems to be of interest in the garden.","connectedTo":["1"],
+			{"id":"4", "roomName":"Garden2","description":"2nd garden","connectedTo":["1"],
 				"width":"400","height":"500","x":"2050","y":"1355"},
 			{"id":"5", "roomName":"Attic","description":"The attic is musty and cramped.","connectedTo":["2"],
 				"width":"250","height":"350","x":"1275","y":"1625"}
-		], "firstVisit": "true", "firstVisitDescription":"You enter a temple which was clearly grand at one point. No worshippers are to be seen."}
+		], "firstVisit": "true", "firstVisitDescription":"You enter a temple which was clearly grand at one point. No worshippers are to be seen."}}
 
 	function enterDungeon(dungeon, room) {
 
@@ -164,18 +164,24 @@
 			//console.log(currentRoom.connectedTo.includes(dungeon.rooms[i].id))
 			if (currentRoom.connectedTo.includes(dungeon.rooms[i].id) == true) {
 				//console.log(dungeon.rooms[i])
-				$("#log").prepend("<button class = 'movementOptions' id = a>" + "Enter the " + dungeon.rooms[i].roomName + "</button>");
-				$("#a").attr("id",i)
+				$("#log").prepend("<button class = 'movementOptions' id = "+i+">" + "Enter the " + dungeon.rooms[i].roomName + "</button>");
 			}
 		}
+
+		//majorConnections":[{"connected":"templeUnderground","startingRoom":"1"}],
 		for (i in currentRoom.majorConnections) {
-			console.log("hello")
-			console.log(currentRoom.majorConnections[i].startingRoom);
-			var start = $("#"+currentRoom.majorConnections[i].startingRoom);
-			console.log(start);
-			var newDungeon = currentRoom.majorConnections[i].connected.rooms[start];
-			$("#log").prepend("<button class = 'majorMovementOptions' id = a>" + "Enter the " + room.majorConnections[i] + "</button>");
-			$("#a").attr("id",room.majorConnections[i]);
+			//console.log("hello")
+			//console.log(currentRoom.majorConnections[i]);
+			var majorConnection = currentRoom.majorConnections[i].connected;//JSON.Parse(currentRoom);
+			var majorConnectionStartingRoom = currentRoom.majorConnections[i].startingRoom;//JSON.Parse(currentRoom);
+			console.log("majorConnection: " + majorConnection);
+			console.log("majorConnectionStartingRoom: " + majorConnectionStartingRoom);
+			//var aaa = dungeons.majorConnections;
+			//console.log(aaa);
+			//console.log(majorConnection);
+			$("#log").prepend("<button data-levelname='"+ majorConnection +"' data-startingroom='"+ majorConnectionStartingRoom +"' class = 'majorMovementOptions' id = a>" + "Enter the " + majorConnection + "</button>");
+
+			//$("#a").attr("id",majorConnectionStartingRoom);
 		}
 
 		$(".movementOptions").on("click", function(){
@@ -191,14 +197,22 @@
 			enterDungeon(dungeon, rightId);
 		});
 		$(".majorMovementOptions").on("click", function(){
-			$(".room").fadeOut(1000);
+			
 			$("button.movementOptions").remove();
-			var id = $(this.attr("id"));
-			enterDungeon(room.majorConnections[i], 1)
+			//var id = $(this.attr("id"));
+			//enterDungeon(room.majorConnections[i], 1)
+
+			var majorConnectionLevelName = $(this).data("levelname");
+			var majorConnectionStartingRoom = $(this).data("startingroom");
+			var level = eval("dungeons." + majorConnectionLevelName);
+			loadDungeon(level,majorConnectionStartingRoom);
+
+			
 		});
 	}
-	function loadDungeon(dungeon){
+	function loadDungeon(dungeon,roomId){
 		$("#mapRooms").empty();
+		//$("#mapRooms").fadeOut(1);
 		for (i in dungeon.rooms) {
 			//console.log(dungeon.rooms[i].id);
 			//console.log(dungeon.rooms[i].roomName);
@@ -206,7 +220,8 @@
 			// //console.log(currentRoom.connectedTo.includes(dungeon.rooms[i].id))
 			renderRoom(dungeon.rooms[i]);
 		}
-		enterDungeon(dungeon, "1");	
+		//$("#mapRooms").fadeIn(500);
+		enterDungeon(dungeon, roomId);	
 	}
 	
 
@@ -245,8 +260,14 @@
 		$mapRooms.append(domRoom);
 	}
 
-	
-	loadDungeon(temple);
+	var initLevel = "temple";
+	function findLevel(level) {
+  		return Function('"use strict";return ('dungeons.'' + initLevel + ')')();
+	}
+	findLeve
+	//var level = eval("dungeons." + initLevel);
+	loadDungeon(level,1);
+
 </script>
 </body>
 </html>
