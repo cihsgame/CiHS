@@ -123,23 +123,22 @@
 				"width":"300","height":"400","x":"1250","y":"1600"},
 			{"id":"3", "roomName":"Altar Room","description":"The altar room has a few books of value.","connectedTo":["1"],"majorConnections":[{"connected":"templeUnderground","startingRoom":"1"}],
 				"width":"300","height":"200","x":"1650","y":"1350"},
-			{"id":"4", "roomName":"Garden","description":"Nothing seems to be of interest in the garden.","connectedTo":["1"],
+			{"id":"4", "roomName":"Garden","description":"The garden has been completely overrun by weeds.","connectedTo":["1"],
 				"width":"400","height":"500","x":"2050","y":"1355"},
 			{"id":"5", "roomName":"Attic","description":"The attic is musty and cramped.","connectedTo":["2"],"majorConnections":[{"connected":"templeUnderground","startingRoom":"4"}],
 				"width":"250","height":"350","x":"1275","y":"1625"}
 		], "firstVisit": "true", "firstVisitDescription":"You enter a temple which was clearly grand at one point. No worshippers are to be seen."},
 	"templeUnderground":{"rooms":[
-			{"id":"1","roomName":"Cellar","description":"The cellar is surprisingly spacious. A .","connectedTo":["2","3","4"],"firstTime":"True",
-				"width":"200","height":"200","x":"1550","y":"1550"},
-			{"id":"2", "roomName":"Storage room","description":"As would be expected, the storage room contains some food and monk robes, and contains a ladder to an attic above.","connectedTo":["1","5"],
-				"width":"300","height":"400","x":"1250","y":"1600"},
-			{"id":"3", "roomName":"Altar Room","description":"The altar room has a few books of value.","connectedTo":["1"],
+			{"id":"1","roomName":"Cellar","description":"The cellar is cramped compared to the main rooms of the temple. Nothing of value can be found.","connectedTo":["2","3","4"],"majorConnections":[{"connected":"temple","startingRoom":"3"}], "firstTime":"True",
 				"width":"300","height":"200","x":"1650","y":"1350"},
-			{"id":"4", "roomName":"Garden2","description":"2nd garden","connectedTo":["1"],
-				"width":"400","height":"500","x":"2050","y":"1355"},
-			{"id":"5", "roomName":"Attic","description":"The attic is musty and cramped.","connectedTo":["2"],
-				"width":"250","height":"350","x":"1275","y":"1625"}
-		], "firstVisit": "true", "firstVisitDescription":"You enter a temple which was clearly grand at one point. No worshippers are to be seen."}}
+			{"id":"2", "roomName":"Weapon cache","description":"Two long rows of weapon and armour racks line the walls. Most of the equipment has been looted, but a few rusty armaments remain.","connectedTo":["1"],
+				"width":"600","height":"125","x":"1550","y":"1225"},
+			{"id":"3", "roomName":"Hidden library","description":"The temple's underground library contains several especially controversial pieces of literature, including a widely-censored alchemist's tome.","connectedTo":["1","4"],
+				"width":"300","height":"150","x":"1650","y":"1550"},
+			{"id":"4", "roomName":"Treasure Room","description":"Only a few empty chests and copper coins remain in the treasure room.","connectedTo":["1","3"],
+				"width":"400","height":"300","x":"1950","y":"1425"},
+
+		], "firstVisit": "true", "firstVisitDescription":"Upon closer inspection, you notice that two of the cellar's walls include doors to other rooms."}}
 
 	function enterDungeon(dungeon, room) {
 
@@ -148,9 +147,9 @@
 			$("#log").prepend("<p>" + dungeon.firstVisitDescription + "</p>");
 			dungeon.firstVisit="false"
 		}
-		//console.log(room)
+		console.log(room)
 		var currentRoom = dungeon.rooms[room-1];
-		// var adj
+		console.log(currentRoom);
 		centerOnRoom(currentRoom);
 		$("#r_"+room).addClass("roomActive");
 		$(".roomActive").removeClass("previousRoom");
@@ -158,47 +157,39 @@
 
 		$("#log").prepend("<p>" + currentRoom.description + "</p>");
 		for (i in dungeon.rooms) {
-			//console.log(dungeon.rooms[i].id);
-			//console.log(dungeon.rooms[i].roomName);
-			//console.log(dungeon.rooms[i].connectedTo)
-			//console.log(currentRoom.connectedTo.includes(dungeon.rooms[i].id))
 			if (currentRoom.connectedTo.includes(dungeon.rooms[i].id) == true) {
 				//console.log(dungeon.rooms[i])
 				$("#log").prepend("<button class = 'movementOptions' id = "+i+">" + "Enter the " + dungeon.rooms[i].roomName + "</button>");
 			}
 		}
 
-		//majorConnections":[{"connected":"templeUnderground","startingRoom":"1"}],
 		for (i in currentRoom.majorConnections) {
-			//console.log("hello")
-			//console.log(currentRoom.majorConnections[i]);
 			var majorConnection = currentRoom.majorConnections[i].connected;//JSON.Parse(currentRoom);
 			var majorConnectionStartingRoom = currentRoom.majorConnections[i].startingRoom;//JSON.Parse(currentRoom);
 			console.log("majorConnection: " + majorConnection);
 			console.log("majorConnectionStartingRoom: " + majorConnectionStartingRoom);
+			var majorConnectionStartingRoomName = dungeons.templeUnderground.rooms[majorConnectionStartingRoom-1].roomName
 			//var aaa = dungeons.majorConnections;
 			//console.log(aaa);
 			//console.log(majorConnection);
-			$("#log").prepend("<button data-levelname='"+ majorConnection +"' data-startingroom='"+ majorConnectionStartingRoom +"' class = 'majorMovementOptions' id = a>" + "Enter the " + majorConnection + "</button>");
-
-			//$("#a").attr("id",majorConnectionStartingRoom);
+			$("#log").prepend("<button data-levelname='"+ majorConnection +"' data-startingroom='"+ majorConnectionStartingRoom +"' class = 'majorMovementOptions' id = a>" + "Enter the " + majorConnectionStartingRoomName + "</button>");	
+			$("#a").attr("id",majorConnectionStartingRoom);
 		}
 
 		$(".movementOptions").on("click", function(){
-			//console.log($(this))
-			//console.log($(this).attr("id"))
 			$(".roomActive").addClass("previousRoom");
 			$(".roomActive").removeClass("roomActive");
 			var rightIdInt = parseInt($(this).attr("id"), 10)+1;
 			var rightId = rightIdInt.toString()
 			//console.log(rightId);
 			$("button.movementOptions").remove();
-			//$("#log").append("<p>" + "You enter the " + document.getElementById(#rightId).roomName + "</p>");
+			$("button.majorMovementOptions").remove()
 			enterDungeon(dungeon, rightId);
 		});
 		$(".majorMovementOptions").on("click", function(){
 			
 			$("button.movementOptions").remove();
+			$("button.majorMovementOptions").remove();
 			//var id = $(this.attr("id"));
 			//enterDungeon(room.majorConnections[i], 1)
 
@@ -261,11 +252,7 @@
 	}
 
 	var initLevel = "temple";
-	function findLevel(level) {
-  		return Function('"use strict";return ('dungeons.'' + initLevel + ')')();
-	}
-	findLeve
-	//var level = eval("dungeons." + initLevel);
+	var level = eval("dungeons." + initLevel);
 	loadDungeon(level,1);
 
 </script>
