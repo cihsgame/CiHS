@@ -165,11 +165,16 @@
 
 		for (i in currentRoom.majorConnections) {
 			var majorConnection = currentRoom.majorConnections[i].connected;//JSON.Parse(currentRoom);
-			var majorConnectionStartingRoom = currentRoom.majorConnections[i].startingRoom;//JSON.Parse(currentRoom);
+			var majorConnectionStartingRoom = currentRoom.majorConnections[i].startingRoom
+			var majorConnectionStartingRoomNumber = parseInt(currentRoom.majorConnections[i].startingRoom)-1;//JSON.Parse(currentRoom);
+			
 			console.log("majorConnection: " + majorConnection);
 			console.log("majorConnectionStartingRoom: " + majorConnectionStartingRoom);
-			var majorConnectionStartingRoomName = dungeons.templeUnderground.rooms[majorConnectionStartingRoom-1].roomName
-			//var aaa = dungeons.majorConnections;
+			//var majorConnectionStartingRoomName = dungeons.templeUnderground.rooms[majorConnectionStartingRoom-1].roomName
+			//console.log(majorConnectionStartingRoomName)
+			console.log(typeof(majorConnectionStartingRoom))
+			console.log(typeof(parseInt(majorConnectionStartingRoom)))
+			var majorConnectionStartingRoomName=(eval("dungeons."+majorConnection+".rooms["+majorConnectionStartingRoomNumber+"].roomName"));
 			//console.log(aaa);
 			//console.log(majorConnection);
 			$("#log").prepend("<button data-levelname='"+ majorConnection +"' data-startingroom='"+ majorConnectionStartingRoom +"' class = 'majorMovementOptions' id = a>" + "Enter the " + majorConnectionStartingRoomName + "</button>");	
@@ -195,6 +200,8 @@
 
 			var majorConnectionLevelName = $(this).data("levelname");
 			var majorConnectionStartingRoom = $(this).data("startingroom");
+			console.log(majorConnectionStartingRoom)
+			console.log(typeof(majorConnectionStartingRoom))
 			var level = eval("dungeons." + majorConnectionLevelName);
 			loadDungeon(level,majorConnectionStartingRoom);
 
