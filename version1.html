@@ -166,7 +166,9 @@
 						{"id":"1","text":"No, I haven't.","response":"What brings you here?", 
 							"options":[
 								{"id":"1a","text":"I was just looking for work.","response":"Well, I have heard of some rumours for you to investigate.", 
-									"options":["id":"2a1","text":"Care to elaborate?","response":"Well, good luck then.", "options":"null"},
+									"options":["id":"2a1","text":"Care to elaborate?","response":"There's a fairly old temple to the northeast of my humble establishment, which I'll mark on your map. Apparently, the priests sequestered some treasure away beneath a trapdoor. The best of it is probably looted, but if you get there quickly enough there should be some valuable items.", 
+											"options":["id":"2a1a","text":"What do you want, exactly?","response":""
+											]},
 									]}
 								{"id":"1b","text":"Thirst, my good man(ale costs 2 gold).","goldChange":-2,"invChange":"ale"}
 							]},
@@ -182,6 +184,47 @@
 						{"id":"3","text":"Get out of my sight Bob. I never want to see you again.","response":"Sorry to hear that.", "options":"null", }
 							]
 						}
+	var player = {name:"Player", strength:0, agility:0, intelligence:0, charisma:0, renown:0, gold:0, hp:0, weapon:rustySword};
+	let maxPlayerHp=player.strength*10+1;
+	var activeQuests = []
+	function createCharacter() {
+		name = document.getElementById("nameEnter").value;
+		strength = Number(document.getElementById("strengthStart").value);
+		agility = Number(document.getElementById("agilityStart").value);
+		intelligence = Number(document.getElementById("intelligenceStart").value);
+		charisma = Number(document.getElementById("charismaStart").value);
+
+		let twentycheck = strength + agility + intelligence + charisma 
+		intCheck = true;
+		positiveCheck = true;
+		if (Number.isInteger(strength)==false || Number.isInteger(agility)==false || Number.isInteger(intelligence)==false || Number.isInteger(charisma)==false) {
+			intCheck = false;
+		} 
+		if (strength < 0 || agility < 0 || intelligence < 0 || charisma < 0) {
+			positiveCheck = false;
+		}
+		if (twentycheck != 20 || intCheck == false || positiveCheck == false) {
+			document.getElementById("instructions").innerHTML = "Your inputted statistics either didn't add up to 20 or contained a negative number or non-integer. Or both. Try again.";
+		}
+		else {
+			player.name = name;
+			player.strength = strength;
+			player.agility = agility;
+			player.intelligence = intelligence;
+			player.charisma = charisma;
+			console.log(player);
+			const removedButton = document.getElementById("statButton");
+			removedButton.remove();
+			maxPlayerHp=player.strength*10+1;
+			player.hp = maxPlayerHp;
+			console.log(player.hp);
+			introduction();
+		}
+
+	console.log(name);
+	console.log(twentycheck);
+}
+
 	function startconversation(conversation, name) {
 		var theName = name
 		var t = conversation.response;
