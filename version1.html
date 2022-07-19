@@ -126,6 +126,7 @@
 
 <script type="text/javascript">
 	var player = {name:"Player", strength:0, agility:0, intelligence:0, charisma:0, renown:0, gold:30, hp:0, race:"human", weapon:"rustySword"}; 
+	var currentRoom = "1";
 	var dungeons = {"temple":{"rooms":[
 			{"id":"1","roomName":"Main Room","description":"The main room is tall and spacious, with several smaller rooms connected to it.","connectedTo":["2","3","4"],"firstTime":"True",
 				"width":"500","height":"500","x":"1550","y":"1550","monsters":[{},{},{}]},
@@ -149,9 +150,30 @@
 				"width":"400","height":"300","x":"1950","y":"1425"},
 		], "firstVisit": "true", "firstVisitDescription":"Upon closer inspection, you notice that two of the cellar's walls include doors to other rooms."},
 	"startingTavern":{"rooms":[
-			{"id":"1", "roomName":"Drinking hall","description":"The main hall of the tavern is relatively spacious, although lacking in patrons at this time of the day.","connectedTo":[],"lockedConnections":["2"],"width":"300","height":"150","x":"1650","y":"1550"},
-			{"id":"2", "roomName":"Bedroom","description":"The bedrooms are relatively clean, but spartan.","connectedTo":["1"],"width":"300","height":"150","x":"1350","y":"1400"}]
+			{"id":"1", "roomName":"Drinking hall","description":"The main hall of the tavern is relatively spacious, although lacking in patrons at this time of the day.","connectedTo":[],"lockedConnections":["2"],"width":"300","height":"150","x":"1650","y":"1550", "conversations":["dietritchCon1","drunkGuyCon1"]},
+			{"id":"2", "roomName":"Bedroom","description":"The bedrooms are relatively clean, but spartan.","connectedTo":["1"],"width":"300","height":"120","x":"1350","y":"1535"}]
 		}}
+
+	//Some important notes about conversations
+	//"responses" are what the NPC says 
+	//options.text is what the player says
+	//ids only have to be unique within the conversation
+	//triggers refer to the effect that a conversation has
+	//
+	var drunkGuyCon1 = {"response":"What?",
+					"options":[
+						{"id":"1","text":"What?","response":"What?"},
+						{"id":"2","text":"How are you feeling?","response":"Drunk"}],"speaker":"The drunk"};
+
+	var dietritchCon1 = {"response":"Hello. What brings you around these parts?",
+					"options":[
+						{"id":"1","text":"I was searching for some employment.","response":"Well, I do have quite a lot of dirty mugs.",
+							"options":[{"id":"1a","text":"Not exactly my trade.","redirect":"2"}]},
+						{"id":"2","text":"Would you happen to have some sort of contract","response":"My friend Ulfgar needs some help on his family farmstead outside of the city. Apparently, a pack of wolves has overrun it and the authorities are too preoccupied to help. It used to be a good source of food for my tavern, so I can give you a hundred gold pieces if you clear it out.","options":[
+							{"id":"2a","text":"I'll take you up on your offer[starts quest].","triggers":{"quests":"firstMission"}},
+							{"id":"2b","text":"Only a hundred?","response":"You're not a proven adventurer.","redirect":"2a"}]},
+						{"id":"3","text":"Thirst, my good man[ale costs 2 gold]","response":"Coming right up sir.","triggers":{"goldChange":-2}}
+					],"speaker":"Dietritch"};
 
 	//console.log(player);
 
@@ -209,17 +231,62 @@
    							$(".characterCreation").empty();
    							loadDungeon(dungeons.startingTavern, 1);
 						}, 3000);
-						
 					})
-
 				}
-
 			})
 		});
-		
-
 	}
 
+
+	function startconversation(conversation, theName) {
+		if (conversation.hasOwnProperty("speaker") == true) {
+			console.log("nametest");
+			var theName = conversation.speaker
+		}
+
+		if (conversation.hasOwnProperty("response")==true){
+			var t = conversation.response;
+			console.log(t);
+			$("#log").append("<p>" + theName + ": " + t +"</p>");
+		}
+
+		if (conversation.hasOwnProperty("options")==true){
+			for (var i = 0; i < conversation.options.length; i++) {
+			//	$("#con").append("<p>" + i + "</p>");
+
+				$("#log").append("<button class='btnOptions' data-jsonoption='"+  JSON.stringify(conversation.options[i])  +"' data-optionid='"+ conversation.options[i].id +"' id='btn_"+ i +"''>" + conversation.options[i].text +"</button>");		
+				//data-jsonoption refers to the id of the conversation response, which is stored in the button
+			}
+
+			$(".btnOptions").on("click", function(){
+				console.log($(this).data("jsonoption"));
+				
+				$("#log").append("<p>" + player.name + ": " + $(this).data("jsonoption").text +"</p>")
+				$("button.btnOptions").remove();
+			
+				if ($(this).data("jsonoption").options != "null") {
+					startconversation($(this).data("jsonoption"), theName);
+					if($(this).data("jsonoption").hasOwnProperty("triggers")==true){
+						console.log("ello");
+						if($(this).data("jsonoption").triggers.quests == "firstMission"){
+							loadDungeon(farmstead)
+						}
+					}
+					if($(this).data("jsonoption").hasOwnProperty("redirect")==true){
+						console.log("hello");
+						startconversation($(this).data("jsonoption").redirect)
+					}		
+					
+				}
+				else {
+					$("#log").append("<p>" + name + ": " + $(this).data("jsonoption").response +"</p>");
+					$("#log").append("<p>" + "The conversation has ended." + "</p>");
+				}
+		if (conversation.hasOwnProperty("redirect")==true)
+			console.log('hello there');
+		});
+	};
+	}
 	function enterDungeon(dungeon, room) {
 
 		//console.log(dungeon.firstVisit);
@@ -256,9 +323,19 @@
 			$("#a").attr("id",majorConnectionStartingRoom);
 		}
 
+		for (i in currentRoom.conversations) {
+			console.log(currentRoom.conversations);
+			var con = currentRoom.conversations[i];
+			var npc = eval(con+".speaker")
+			console.log(npc);
+			console.log(con);
+			$("#buttonMenu").append("<button class = 'conOptions' data-conname='"+con+"' data-npcname='"+npc+"'>"+"Speak to "+ npc + "</button>");
+		}
+
 		$(".movementOptions").on("click", function(){
 			$(".roomActive").addClass("previousRoom");
 			$(".roomActive").removeClass("roomActive");
+			$("button.conOptions").remove();
 			var rightIdInt = parseInt($(this).attr("id"), 10)+1;
 			var rightId = rightIdInt.toString()
 			//console.log(rightId);
@@ -266,10 +343,12 @@
 			$("button.majorMovementOptions").remove()
 			enterDungeon(dungeon, rightId);
 		});
+
 		$(".majorMovementOptions").on("click", function(){
 			
 			$("button.movementOptions").remove();
 			$("button.majorMovementOptions").remove();
+			$("button.conOptions").remove();
 			//var id = $(this.attr("id"));
 			//enterDungeon(room.majorConnections[i], 1)
 
@@ -277,9 +356,25 @@
 			var majorConnectionStartingRoom = $(this).data("startingroom");
 			var level = eval("dungeons." + majorConnectionLevelName);
 			loadDungeon(level,majorConnectionStartingRoom);
-
-			
 		});
+
+		$(".conOptions").on("click", function(){
+			console.log("hello there");
+			console.log($(this));
+			$("button.movementOptions").disabled = true;
+			$("button.majorMovementOptions").disabled = true;
+			$("button.conOptions").disabled = true;
+
+			var conName = $(this).data("conname");
+			console.log(conName);
+			var npcName = $(this).data("npcname");
+			console.log(npcName);
+			var rightConName = eval(conName);
+			console.log(rightConName);
+			startconversation(rightConName,npcName);
+		});
+
+		
 	}
 	function loadDungeon(dungeon,roomId){
 		$("#mapRooms").empty();
