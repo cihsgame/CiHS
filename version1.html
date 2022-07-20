@@ -128,6 +128,12 @@
 	var rustySword = "sword"
 	var player = {name:"Player", strength:0, agility:0, intelligence:0, charisma:0, renown:0, gold:30, hp:0, race:"human", weapon:rustySword}; 
 	var currentRoom = "1";
+	//some important notes about dungeons
+	//room ids are used for indexing and only have to unique within each level
+	//
+	//
+	//
+
 	var dungeons = {"temple":{"rooms":[
 			{"id":"1","roomName":"Main Room","description":"The main room is tall and spacious, with several smaller rooms connected to it.","connectedTo":["2","3","4"],"firstTime":"True",
 				"width":"500","height":"500","x":"1550","y":"1550","monsters":[{},{},{}]},
@@ -153,7 +159,16 @@
 	"startingTavern":{"rooms":[
 			{"id":"1", "roomName":"Drinking hall","description":"The main hall of the tavern is relatively spacious, although lacking in patrons at this time of the day.","connectedTo":[],"lockedConnections":["2"],"width":"300","height":"150","x":"1650","y":"1550", "conversations":["dietritchCon1","drunkGuyCon1"]},
 			{"id":"2", "roomName":"Bedroom","description":"The bedrooms are relatively clean, but spartan.","connectedTo":["1"],"width":"300","height":"120","x":"1350","y":"1535"}]
-		}}
+		},
+	"farmstead":{"rooms":[
+			{"id":"1", "roomName":"Fields","description":"The fields are severely overgrown.","connectedTo":["2","3","4","6"],"lockedConnections":["2"],"width":"300","height":"150","x":"1650","y":"1550", "conversations":["dietritchCon1","drunkGuyCon1"]},
+			{"id":"2", "roomName":"Copse","description":"The small copse is a natural home for some of the wolves.","connectedTo":["1"],"width":"300","height":"120","x":"1350","y":"1535"},
+			{"id":"3", "roomName":"Barn","description":"The barn is no different from any other.","connectedTo":["1"],"width":"300","height":"120","x":"1350","y":"1535"},
+			{"id":"4", "roomName":"House", "description":"The house is in a state of disarray, and smells terrible.","connectedTo":["1","5"]},
+			{"id":"5", "roomName":"Toolshed","description":"Unsurprisingly, the toolshed contains a few tools.","connectedTo":["1"],"width":"300","height":"120","x":"1350","y":"1535"},
+			{"id":"6", "roomName":"Toolshed","description":", but spartan.","connectedTo":["1"],"width":"300","height":"120","x":"1350","y":"1535"}]
+		},
+	]}
 
 	//Some important notes about conversations
 	//"responses" are what the NPC says 
