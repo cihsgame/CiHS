@@ -125,7 +125,8 @@
 	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
 
 <script type="text/javascript">
-	var player = {name:"Player", strength:0, agility:0, intelligence:0, charisma:0, renown:0, gold:30, hp:0, race:"human", weapon:"rustySword"}; 
+	var rustySword = "sword"
+	var player = {name:"Player", strength:0, agility:0, intelligence:0, charisma:0, renown:0, gold:30, hp:0, race:"human", weapon:rustySword}; 
 	var currentRoom = "1";
 	var dungeons = {"temple":{"rooms":[
 			{"id":"1","roomName":"Main Room","description":"The main room is tall and spacious, with several smaller rooms connected to it.","connectedTo":["2","3","4"],"firstTime":"True",
@@ -169,13 +170,12 @@
 					"options":[
 						{"id":"1","text":"I was searching for some employment.","response":"Well, I do have quite a lot of dirty mugs.",
 							"options":[{"id":"1a","text":"Not exactly my trade.","redirect":"2"}]},
-						{"id":"2","text":"Would you happen to have some sort of contract","response":"My friend Ulfgar needs some help on his family farmstead outside of the city. Apparently, a pack of wolves has overrun it and the authorities are too preoccupied to help. It used to be a good source of food for my tavern, so I can give you a hundred gold pieces if you clear it out.","options":[
-							{"id":"2a","text":"I'll take you up on your offer[starts quest].","triggers":{"quests":"firstMission"}},
-							{"id":"2b","text":"Only a hundred?","response":"You're not a proven adventurer.","redirect":"2a"}]},
+						{"id":"2","text":"Would you happen to have some sort of contract for me?","response":"My friend Ulfgar needs some help on his family farmstead outside of the city. Apparently, a pack of wolves has overrun it and the authorities are too preoccupied to help. It used to be a good source of food for my tavern, so I can give you a hundred gold pieces if you clear it out.","options":[
+							{"id":"2a","text":"I accept your offer[starts quest].","triggers":{"quests":"firstMission"}},
+							{"id":"2b","text":"Only a hundred?","response":"You are not a proven adventurer.","redirect":"2a"}]},
 						{"id":"3","text":"Thirst, my good man[ale costs 2 gold]","response":"Coming right up sir.","triggers":{"goldChange":-2}}
 					],"speaker":"Dietritch"};
 
-	//console.log(player);
 
 	function init1() {
 		$(".characterCreation").append("<h1>"+"Welcome to CiHS"+"</h1>");
@@ -238,10 +238,13 @@
 	}
 
 
-	function startconversation(conversation, theName) {
+	function startconversation(conversation, theName, originalCon) {
+		console.log(originalCon);
 		if (conversation.hasOwnProperty("speaker") == true) {
+			//this also checks if it's the first part of the conversation
 			console.log("nametest");
-			var theName = conversation.speaker
+			var theName = conversation.speaker;
+			console.log(originalCon);
 		}
 
 		if (conversation.hasOwnProperty("response")==true){
@@ -264,23 +267,40 @@
 				$("#log").append("<p>" + player.name + ": " + $(this).data("jsonoption").text +"</p>")
 				$("button.btnOptions").remove();
 			
-				if ($(this).data("jsonoption").options != "null") {
-					startconversation($(this).data("jsonoption"), theName);
-					if($(this).data("jsonoption").hasOwnProperty("triggers")==true){
-						console.log("ello");
-						if($(this).data("jsonoption").triggers.quests == "firstMission"){
-							loadDungeon(farmstead)
+				startconversation($(this).data("jsonoption"), theName, originalCon);
+				if($(this).data("jsonoption").hasOwnProperty("triggers")==true){
+					if($(this).data("jsonoption").triggers.quests == "firstMission"){
+						loadDungeon(farmstead,1)
+					}
+				}
+				if($(this).data("jsonoption").hasOwnProperty("redirect")==true){
+					var redirectId = $(this).data("jsonoption").redirect;
+					console.log(redirectId);
+					function redirect(baseCon) {
+						console.log(baseCon);
+						for (i in baseCon.options) {
+							console.log(baseCon.options[i].id);
+							console.log(redirectId);
+							if (baseCon.options[i].id == redirectId){
+								startconversation(baseCon.options[i],theName,originalCon);
+							}
+							else if (baseCon.options[i].id != redirectId && baseCon.options[i].hasOwnProperty("options")==true){
+								redirect(baseCon.options[i])
+							}
+							else {
+								console.log("no options here");
+							}
 						}
 					}
-					if($(this).data("jsonoption").hasOwnProperty("redirect")==true){
-						console.log("hello");
-						startconversation($(this).data("jsonoption").redirect)
-					}		
+					redirect(originalCon);
+					console.log("hello");
+					console.log($(this).data("jsonoption"));
+					//startconversation($(this).data("jsonoption").redirect)
+				}		
 					
-				}
 				else {
-					$("#log").append("<p>" + name + ": " + $(this).data("jsonoption").response +"</p>");
-					$("#log").append("<p>" + "The conversation has ended." + "</p>");
+					//$("#log").append("<p>" + name + ": " + $(this).data("jsonoption").response +"</p>");
+					//$("#log").append("<p>" + "The conversation has ended." + "</p>");
 				}
 		if (conversation.hasOwnProperty("redirect")==true)
 			console.log('hello there');
@@ -369,9 +389,8 @@
 			console.log(conName);
 			var npcName = $(this).data("npcname");
 			console.log(npcName);
-			var rightConName = eval(conName);
-			console.log(rightConName);
-			startconversation(rightConName,npcName);
+			var rightCon = eval(conName);
+			startconversation(rightCon,npcName,rightCon);
 		});
 
 		
