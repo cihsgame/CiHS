@@ -126,14 +126,14 @@
 
 <script type="text/javascript">
 	var rustySword = "sword"
-	var player = {name:"Player", strength:0, agility:0, intelligence:0, charisma:0, renown:0, gold:30, hp:0, race:"human", weapon:rustySword}; 
+	var player = {name:"Player", strength:0, agility:0, intelligence:0, charisma:0, renown:0, gold:30, hp:0, race:"human", weaponId:"1"}; 
 	var currentRoom = "1";
 
 	//some important notes about dungeons
 	//room ids are used for indexing and only have to unique within each level
 	//x refers to the distance from the left of the map to the left of the room
 	//y refers to the distance from the bottom of the map to the top of the room
-	//complete room property order: id->roomName->description->connectedTo->majorConnections->enemies->width->height->x->y->
+	//complete room property order: id->roomName->description->connectedTo->majorConnections->enemies->loot->width->height->x->y->special attributes
 
 	var dungeons = {"temple":{"rooms":[
 			{"id":"1","roomName":"Main Room","description":"The main room is tall and spacious, with several smaller rooms connected to it.","connectedTo":["2","3","4"],"firstTime":"True",
@@ -162,27 +162,31 @@
 			{"id":"2", "roomName":"Bedroom","description":"The bedrooms are relatively clean, but spartan.","connectedTo":["1"],"width":"300","height":"120","x":"1350","y":"1535"}]
 		},
 	"farmstead":{"rooms":[
-			{"id":"1", "roomName":"Fields", "roomClass":"open","description":"The fields are severely overgrown.","connectedTo":["2","3","5","7"],"enemies":["1"],"","width":"1200","height":"1200","x":"1200","y":"1200"},
-			{"id":"2", "roomName":"Copse","description":"The small forest is a natural home for some of the wolves.","connectedTo":["1"],"enemies":["1","1","1"],"width":"300","height":"300","x":"1650","y":"2200"},
+			{"id":"1", "roomName":"Fields", "roomClass":"open","description":"The fields are severely overgrown.","connectedTo":["2","3","5","7"],"enemies":["1"],"width":"1200","height":"1200","x":"1200","y":"1200",},
+			{"id":"2", "roomName":"Copse","description":"The small forest is a natural home for some of the wolves.","connectedTo":["1"],"enemies":["1","1","1"],"width":"300","height":"300","x":"1650","y":"2200","firstVisit":"true","firstVisitDescription":"Surprisingly, rather than howling at you, the wolf barks aggressively."},
 			{"id":"3", "roomName":"Barn","description":"The barn is no different from any other.","connectedTo":["1","4"],"width":"250","height":"400","x":"1350","y":"1800"},
 			{"id":"4", "roomName":"Chicken coop","connectedTo":["3"],"width":"100","height":"50","x":"1450","y":"1750"},
-			{"id":"5", "roomName":"House", "description":"The house is in a state of disarray, and has a foul odour.","connectedTo":["1","6"],"enemies":["1","1"],"width":"300","height":"250","x":"1700","y":"1535"},
-			{"id":"6", "roomName":"Second floor","description":"The second floor of the house seems to have been the living space of Ulfgar's family.","connectedTo":["5"],"width":"275","height":"225","x":"1713","y":"1546"},
+			{"id":"5", "roomName":"House", "description":"The house is in a state of disarray, and has a foul odour.","connectedTo":["1","6"],"enemies":["1","2"],"width":"300","height":"250","x":"1700","y":"1535"},
+			{"id":"6", "roomName":"Second floor","description":"The second floor of the house seems to have been the living space of Ulfgar's family.","connectedTo":["5"],"width":"275","height":"225","x":"1713","y":"1546","firstVisit":"true","firstVisitDescription":"You are horrified to discover three deformed skeletons lie upon torn, bloody sheets. This cannot be the work of any ordinary wolf."},
 			{"id":"7", "roomName":"Toolshed","description":"Unsurprisingly, the toolshed contains a few tools.","connectedTo":["1"],"width":"50","height":"30","x":"1350","y":"1400"}]
 		},
 	}
-	//(in)complete enemy property order: id->name->type->strength->agility->hp->weapon->armour->gold->miscLoot->
-	var enemies = {
-		{"id":"1","name":"wolf","type":"animal","strength":10,"agility":10,"hp":40,"miscLoot":"1"},
-		{},
+	//(in)complete enemy property order: id->name->type->strength->agility->hp->weaponId->armour->gold->miscLoot->
+	var enemyList = [
+		{"id":"1","name":"wolf","type":"animal","strength":10,"agility":5,"hp":40,"miscLoot":"1"},
+		{"id":"2","name":"large wolf","type":"animal","strength":12,"agility":5,"hp":60,"miscLoot":"1"},
 		{}
-	}
+	]
+	var weapons = [
+		{"id":"1","name":"Rusty sword","tier":"1","type":"sword","damage":10,"handling":10,"value":10,"weight":5},
+	]
 	//item property order(not necessarily complete):id->name->value->weight->description(not all will have one)
 	//these items ar
-	var items = {
+	var items = [
 		{"id":"1","name":"Wolf Pelt","value":10,"weight":5}
-	}
+	]
 	var activeEnemies=[]
+
 	//Some important notes about conversations
 	//"responses" are what the NPC says 
 	//options.text is what the player says
@@ -204,6 +208,21 @@
 						{"id":"3","text":"Thirst, my good man[ale costs 2 gold]","response":"Coming right up sir.","triggers":{"goldChange":-2}}
 					],"speaker":"Dietritch"};
 
+	function getRandomInt(max) {
+    	return Math.floor(Math.random() * max);
+	}
+	function preventNegative(number){
+		if (number < 0) {
+			number = 0
+		}
+	}
+	function getJsonObjectById(id,object){
+		for (let i = 0; i<object.length; i++) {
+			if (object[i].id = id) {
+				return object[i];
+			}
+		}
+	}
 
 	function init1() {
 		$(".characterCreation").append("<h1>"+"Welcome to CiHS"+"</h1>");
@@ -404,10 +423,12 @@
 		}
 
 		if (currentRoom.hasOwnProperty("enemies")==true){
-			for (i in currentRoom.enemies) {
-				activeEnemies.append(currentRoom.enemies[i]);
+			console.log(currentRoom.enemies)
+			for (let i = 0; i <currentRoom.enemies.length; i++) {
+				activeEnemies.push(currentRoom.enemies[i]);
+				console.log(activeEnemies);
 			}
-			doBattle(activeEnemies);
+			doBattle(activeEnemies,currentRoom);
 		}
 
 		$(".movementOptions").on("click", function(){
@@ -453,8 +474,150 @@
 
 		
 	}
-	function doBattle(enemies) {
-		
+	function doBattle(enemies,currentLocation) {
+		console.log(enemies);
+
+		truePlayerWeapon = getJsonObjectById(player.weaponId,weapons);
+		var defeatedEnemies=[]
+		for (let i = 0; i < enemies.length; i++) {
+			let rightEnemyId = parseInt(enemies[i])-1
+			console.log(rightEnemyId);
+			activeEnemies.shift(activeEnemies[i])
+			activeEnemies.push(enemyList[rightEnemyId]);
+			console.log(activeEnemies);
+		}
+
+		var startEnemies = activeEnemies
+		for (let i = 0; i < activeEnemies.length; i++) {
+			var h = i+1
+			let theEnemy = activeEnemies[i];
+			$("#buttonMenu").append("<button class = 'combatButtons' id="+'attack'+h+" data-enemy='hello'>"+"Attack "+theEnemy.name+"</button>");
+			//$("#buttonMenu").append("<button id=attack data-enemy='hello'>"+"Attack "+theEnemy.name+"</button>");
+		}
+		$("#buttonMenu").append("<button class = 'combatButtons' id='flee'>"+"Flee the fighting"+"</button>");
+		$("#buttonMenu").append("<button class = 'combatButtons' id='taunt'>"+"Taunt"+"</button>");
+		$(".combatButtons").on("click",function(){
+			console.log($(this));
+			console.log($(this).prop("id"))
+			if($(this).prop("id")=="attack1"){
+				attack(player,startEnemies[0])
+			}
+			if($(this).prop("id")=="attack2"){
+				attack(player,startEnemies[1])
+			}
+			if($(this).prop("id")=="attack3"){
+				attack(player,startEnemies[2])
+			}
+			if($(this).prop("id")=="attack4"){
+				attack(player,startEnemies[3])
+			}
+		})
+
+		function attack(attacker,defender){
+			console.log(attacker);
+			console.log(defender);
+			//var strengthDifference = attacker.strength-defender.strength
+			//var agilityDifference = attacker.agility-defender.agility
+			var agilityRoll = getRandomInt(attacker.agility);
+			var defAgilityRoll = getRandomInt(defender.agility);
+			console.log(defAgilityRoll)
+			console.log(agilityRoll)
+			var agilityRollDiff = agilityRoll-defAgilityRoll
+			var baseDamage=0
+			if (attacker.hasOwnProperty("weapon")==true){
+				var trueAttackerWeapon = getJsonObjectById(attacker.weapon,weapons);
+				console.log(Math.floor((1 + attacker.strength*0.05) * trueAttackerWeapon.dmg))
+				baseDamage = Math.floor((1 + attacker.strength*0.05) * trueAttackerWeapon.dmg);
+			}
+			if (attacker.hasOwnProperty("weapon")==false){
+				baseDamage = attacker.strength;
+			}
+			var RnJesus = getRandomInt(1000)+agilityRollDiff;
+			preventNegative(RnJesus);
+			console.log(RnJesus)
+			var realDamage = 0 //placeholder value
+			var damageString = "0"
+			if (RnJesus < 100) {
+				console.log("hullo");
+				writeLine(attacker.name	+ " clumsily misses " + defender.name);
+			}
+			if (RnJesus >= 100 && RnJesus <= 300) {
+				realDamage=Math.floor(baseDamage/2)
+				damageString=realDamage.toString();
+				defender.hp=defender.hp-realDamage;
+				writeLine(attacker.name+" lands a glancing attack on "+defender.name+" and deals "+damageString+" damage");
+				deathCheck()
+			}
+			if (RnJesus > 300 && RnJesus <= 700) {
+				realDamage=baseDamage	
+				console.log(realDamage);
+				damageString=realDamage.toString();
+				defender.hp=defender.hp-realDamage;
+				writeLine(attacker.name+" strikes "+defender.name+ " and deals " + damageString+" damage");
+				deathCheck()
+			}
+			if (RnJesus > 700 && RnJesus <= 900) {
+				realDamage=Math.floor(baseDamage*1.4);
+				damageString=realDamage.toString();
+				defender.hp=defender.hp-realDamage;
+				writeLine(attacker.name+" delivers a hard blow to "+defender.name+ " and deals " + damageString+" damage");
+				deathCheck()
+			}
+			if (RnJesus > 900) {
+				realDamage=baseDamage*2
+				damageString=realDamage.toString();
+				defender.hp=defender.hp-realDamage;
+				writeLine(attacker.name+" delivers a devastating blow to "+defender.name+ " and deals " + damageString+" damage");
+				deathCheck()
+			}
+			function deathCheck(){
+				if (defender.hp<0){
+					if (defender==player){
+						writeLine("So end the heroic exploits of "+player.name);
+						$(".container").fadeOut(1000);
+						//return to title screen
+					}
+					if (attacker==player){
+						for(var i = 0; i<activeEnemies.length;i++){
+							if(activeEnemies[i]=defender){
+								var removeIndex	= i
+							}
+						};
+						console.log(removeIndex)
+						activeEnemies.splice(removeIndex);
+						$("#buttonMenu").remove
+						defeatedEnemies.push(defender);
+						if (activeEnemies.length==0){
+							afterBattle();
+						}
+					}
+				}
+		function afterBattle(){
+			$(".combatButtons").remove	
+			writeLine("You have emerged victorious.");
+			for (var i = 0; i<defeatedEnemies.length; i++){
+				var deadEnemy = defeatedEnemies[i];
+				//var removedEnemy = getJsonObjectById(deadEnemy,activeEnemies)
+				if(currentLocation.hasOwnProperty("loot")==true){
+					currentLocation.deadEnemy.items
+				}
+				if(currentLocation.hasOwnProperty("loot")==false){
+					currentLocation.loot=[]
+					if(deadEnemy.hasOwnProperty("items")){
+						currentLocation.loot.push(deadEnemy.items);
+					}
+					if(deadEnemy.hasOwnProperty("weapon")){
+						currentLocation.loot.push(deadEnemy.weapon);
+					}
+				}
+			}
+
+			}
+			}
+		}
+	}
+	function writeLine(input){
+		$("#log").prepend("<p>"+input+"</p>");
 	}
 	function loadDungeon(dungeon,roomId){
 		$("#mapRooms").empty();
