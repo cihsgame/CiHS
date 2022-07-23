@@ -83,7 +83,16 @@
 			right: 1025px;
 			visibility: hidden;
 		}
-
+		#playerInfo {
+			background-color: lightgrey;
+			position: absolute;
+			width: 150px;
+			height: 240px;
+			border: 2px solid grey;
+			bottom: 50px;
+			Left: 1025px;
+			visibility: hidden;
+		}
 		@media only screen and (max-width: 1199px) {
 		#map {
 			background-color: lightgrey;
@@ -119,6 +128,7 @@
 		</div>
 
 		<div id = avatarBox> </div>
+		<div id = playerInfo></div>
 
 	</div>
 
@@ -367,7 +377,7 @@
 	function enterDungeon(dungeon, room) {
 
 		$(".conOptions").remove()
-		
+		activeEnemies=[];
 
 		//console.log(dungeon.firstVisit);
 		if (dungeon.firstVisit=="true") {
@@ -396,7 +406,7 @@
 		for (i in dungeon.rooms) {
 			if (currentRoom.connectedTo.includes(dungeon.rooms[i].id) == true) {
 				//console.log(dungeon.rooms[i])
-				$("#log").prepend("<button class = 'movementOptions' id = "+i+">" + "Enter the " + dungeon.rooms[i].roomName + "</button>");
+				$("#buttonMenu").prepend("<button class = 'movementOptions' id = "+i+">" + "Enter the " + dungeon.rooms[i].roomName + "</button>");
 			}
 		}
 
@@ -422,12 +432,15 @@
 			$("#buttonMenu").append("<button class = 'conOptions' data-conname='"+con+"' data-npcname='"+npc+"'>"+"Speak to "+ npc + "</button>");
 		}
 
-		if (currentRoom.hasOwnProperty("enemies")==true){
+		if (currentRoom.hasOwnProperty("enemies")==true && currentRoom.enemies.length>0){
 			console.log(currentRoom.enemies)
+			console.log(activeEnemies);
 			for (let i = 0; i <currentRoom.enemies.length; i++) {
 				activeEnemies.push(currentRoom.enemies[i]);
 				console.log(activeEnemies);
 			}
+			console.log(activeEnemies);
+			console.log(currentRoom);
 			doBattle(activeEnemies,currentRoom);
 		}
 
@@ -479,15 +492,11 @@
 
 		truePlayerWeapon = getJsonObjectById(player.weaponId,weapons);
 		var defeatedEnemies=[]
+		var activeEnemies = []
 		for (let i = 0; i < enemies.length; i++) {
-			let rightEnemyId = parseInt(enemies[i])-1
-			console.log(rightEnemyId);
-			activeEnemies.shift(activeEnemies[i])
-			activeEnemies.push(enemyList[rightEnemyId]);
-			console.log(activeEnemies);
+			activeEnemies.push(getJsonObjectById(enemies[i],enemyList));
 		}
 
-		var startEnemies = activeEnemies
 		for (let i = 0; i < activeEnemies.length; i++) {
 			var h = i+1
 			let theEnemy = activeEnemies[i];
@@ -500,16 +509,16 @@
 			console.log($(this));
 			console.log($(this).prop("id"))
 			if($(this).prop("id")=="attack1"){
-				attack(player,startEnemies[0])
+				attack(player,activeEnemies[0])
 			}
 			if($(this).prop("id")=="attack2"){
-				attack(player,startEnemies[1])
+				attack(player,activeEnemies[1])
 			}
 			if($(this).prop("id")=="attack3"){
-				attack(player,startEnemies[2])
+				attack(player,activeEnemies[2])
 			}
 			if($(this).prop("id")=="attack4"){
-				attack(player,startEnemies[3])
+				attack(player,activeEnemies[3])
 			}
 		})
 
@@ -593,7 +602,9 @@
 					}
 				}
 		function afterBattle(){
-			$(".combatButtons").remove	
+			activeEnemies=[];
+			$(".combatButtons").remove();
+			currentLocation.enemies = [];	
 			writeLine("You have emerged victorious.");
 			for (var i = 0; i<defeatedEnemies.length; i++){
 				var deadEnemy = defeatedEnemies[i];
@@ -626,6 +637,7 @@
 		$("#log").css("visibility", "visible");
 		$("#buttonMenu").css("visibility", "visible");
 		$("#avatarBox").css("visibility", "visible");
+		$("#playerInfo").css("visibility", "visible");
 		//$("#mapRooms").fadeOut(1);
 		for (i in dungeon.rooms) {
 			//console.log(dungeon.rooms[i].id);
