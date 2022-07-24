@@ -189,6 +189,8 @@
 	]
 	var weapons = [
 		{"id":"1","name":"Rusty sword","tier":"1","type":"sword","damage":10,"handling":10,"value":10,"weight":5},
+		{"id":"2","name":"Woodcutter's axe","tier":"1","type":"axe","damage":15,"handling":3,"value":16,"weight":12},
+		{"id":"3","name":"Club","tier":"1","type":"mace","damage":8,"handling":5,"value":3,"weight":6}
 	]
 	//item property order(not necessarily complete):id->name->value->weight->description(not all will have one)
 	//these items ar
@@ -226,9 +228,10 @@
 			number = 0
 		}
 	}
-	function getJsonObjectById(id,object){
+	function getJsonObjectById(searchId,object){
 		for (let i = 0; i<object.length; i++) {
-			if (object[i].id = id) {
+			if (object[i].id == searchId) {
+				console.log(object[i]);
 				return object[i];
 			}
 		}
@@ -266,18 +269,18 @@
 					$(".characterCreation").append("<p id = race>"+"Select your race"+"</p>")
 					$(".characterCreation").append("<p id = raceInfo></p>")
 
-					$(".characterCreation").append("<button id = 'Brython'>"+"Brython"+"</button>");
-					$(".characterCreation").append("<button id = 'Sinic'>"+"Sinic"+"</button>");
+					$(".characterCreation").append("<button id = 'Angevin'>"+"Angevin"+"</button>");
+					$(".characterCreation").append("<button id = 'Rorikid'>"+"Rorikid"+"</button>");
 					$(".characterCreation").append("<button id = 'verifyRace'>"+"Verify race?"+"</button>");	
-					$("#Brython").on("click",function(){
+					$("#Angevin").on("click",function(){
 						$("#raceInfo").html("British people");
 						selectedRace = "Brython";
 						console.log(selectedRace);
 					})
-					$("#Sinic").on("click",function(){
-						selectedRace = "Sinic";
+					$("#Rorikid").on("click",function(){
+						selectedRace = "Rorikid";
 						console.log(selectedRace);
-						$("#raceInfo").html("Chinese people");
+						$("#raceInfo").html("russia");
 					})
 					$("#verifyRace").on("click",function(){
 						console.log(selectedRace);
@@ -494,13 +497,19 @@
 		var defeatedEnemies=[]
 		var activeEnemies = []
 		for (let i = 0; i < enemies.length; i++) {
-			activeEnemies.push(getJsonObjectById(enemies[i],enemyList));
+			console.log(enemies[i]);
+			var enemyToFight = getJsonObjectById(enemies[i],enemyList);
+			var copy = structuredClone(enemyToFight);
+			console.log(copy);
+			activeEnemies.push(copy);
 		}
+		var startEnemies = structuredClone(activeEnemies);
+		console.log(startEnemies);
 
 		for (let i = 0; i < activeEnemies.length; i++) {
 			var h = i+1
 			let theEnemy = activeEnemies[i];
-			$("#buttonMenu").append("<button class = 'combatButtons' id="+'attack'+h+" data-enemy='hello'>"+"Attack "+theEnemy.name+"</button>");
+			$("#buttonMenu").append("<button class = 'combatButtons' data-enemyId = "+theEnemy.id+" id="+'attack'+h+" data-enemy='hello'>"+"Attack "+theEnemy.name+"</button>");
 			//$("#buttonMenu").append("<button id=attack data-enemy='hello'>"+"Attack "+theEnemy.name+"</button>");
 		}
 		$("#buttonMenu").append("<button class = 'combatButtons' id='flee'>"+"Flee the fighting"+"</button>");
@@ -523,14 +532,11 @@
 		})
 
 		function attack(attacker,defender){
-			console.log(attacker);
-			console.log(defender);
+
 			//var strengthDifference = attacker.strength-defender.strength
 			//var agilityDifference = attacker.agility-defender.agility
 			var agilityRoll = getRandomInt(attacker.agility);
 			var defAgilityRoll = getRandomInt(defender.agility);
-			console.log(defAgilityRoll)
-			console.log(agilityRoll)
 			var agilityRollDiff = agilityRoll-defAgilityRoll
 			var baseDamage=0
 			if (attacker.hasOwnProperty("weapon")==true){
@@ -543,11 +549,9 @@
 			}
 			var RnJesus = getRandomInt(1000)+agilityRollDiff;
 			preventNegative(RnJesus);
-			console.log(RnJesus)
 			var realDamage = 0 //placeholder value
 			var damageString = "0"
 			if (RnJesus < 100) {
-				console.log("hullo");
 				writeLine(attacker.name	+ " clumsily misses " + defender.name);
 			}
 			if (RnJesus >= 100 && RnJesus <= 300) {
@@ -555,7 +559,7 @@
 				damageString=realDamage.toString();
 				defender.hp=defender.hp-realDamage;
 				writeLine(attacker.name+" lands a glancing attack on "+defender.name+" and deals "+damageString+" damage");
-				deathCheck()
+				deathCheck();
 			}
 			if (RnJesus > 300 && RnJesus <= 700) {
 				realDamage=baseDamage	
@@ -563,21 +567,21 @@
 				damageString=realDamage.toString();
 				defender.hp=defender.hp-realDamage;
 				writeLine(attacker.name+" strikes "+defender.name+ " and deals " + damageString+" damage");
-				deathCheck()
+				deathCheck();
 			}
 			if (RnJesus > 700 && RnJesus <= 900) {
 				realDamage=Math.floor(baseDamage*1.4);
 				damageString=realDamage.toString();
 				defender.hp=defender.hp-realDamage;
 				writeLine(attacker.name+" delivers a hard blow to "+defender.name+ " and deals " + damageString+" damage");
-				deathCheck()
+				deathCheck();
 			}
 			if (RnJesus > 900) {
 				realDamage=baseDamage*2
 				damageString=realDamage.toString();
 				defender.hp=defender.hp-realDamage;
 				writeLine(attacker.name+" delivers a devastating blow to "+defender.name+ " and deals " + damageString+" damage");
-				deathCheck()
+				deathCheck();
 			}
 			function deathCheck(){
 				if (defender.hp<0){
@@ -588,13 +592,27 @@
 					}
 					if (attacker==player){
 						for(var i = 0; i<activeEnemies.length;i++){
-							if(activeEnemies[i]=defender){
+							if(activeEnemies[i]==defender){
 								var removeIndex	= i
 							}
 						};
-						console.log(removeIndex)
+						writeLine(defender.name+" has been killed");
+						console.log(removeIndex);
 						activeEnemies.splice(removeIndex);
-						$("#buttonMenu").remove
+						console.log(activeEnemies);
+						if (defender.id == startEnemies[0].id){
+							$("#attack1").remove()
+						}
+						else if (defender.id == startEnemies[1].id){
+							console.log("are we here")
+							$("#attack2").remove()
+						}
+						else if (defender.id == startEnemies[2].id){
+							$("#attack3").remove()
+						}
+						else if (defender.id == startEnemies[3].id){
+							$("#attack4").remove()
+						}
 						defeatedEnemies.push(defender);
 						if (activeEnemies.length==0){
 							afterBattle();
@@ -603,6 +621,8 @@
 				}
 		function afterBattle(){
 			activeEnemies=[];
+			console.log(activeEnemies);
+			console.log(defeatedEnemies);
 			$(".combatButtons").remove();
 			currentLocation.enemies = [];	
 			writeLine("You have emerged victorious.");
@@ -610,19 +630,19 @@
 				var deadEnemy = defeatedEnemies[i];
 				//var removedEnemy = getJsonObjectById(deadEnemy,activeEnemies)
 				if(currentLocation.hasOwnProperty("loot")==true){
-					currentLocation.deadEnemy.items
+					console.log(currentLocation.deadEnemy.miscLoot)
 				}
 				if(currentLocation.hasOwnProperty("loot")==false){
 					currentLocation.loot=[]
 					if(deadEnemy.hasOwnProperty("items")){
-						currentLocation.loot.push(deadEnemy.items);
+						currentLocation.loot.push(deadEnemy.miscLoot);
 					}
 					if(deadEnemy.hasOwnProperty("weapon")){
 						currentLocation.loot.push(deadEnemy.weapon);
 					}
 				}
 			}
-
+			$("#lootButton")
 			}
 			}
 		}
