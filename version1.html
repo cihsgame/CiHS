@@ -173,7 +173,7 @@
 		},
 	"farmstead":{"rooms":[
 			{"id":"1", "roomName":"Fields", "roomClass":"open","description":"The fields are severely overgrown.","connectedTo":["2","3","5","7"],"enemies":["1"],"width":"1200","height":"1200","x":"1200","y":"1200",},
-			{"id":"2", "roomName":"Copse","description":"The small forest is a natural home for some of the wolves.","connectedTo":["1"],"enemies":["1","1","1"],"width":"300","height":"300","x":"1650","y":"2200","firstVisit":"true","firstVisitDescription":"Surprisingly, rather than howling at you, the wolf barks aggressively."},
+			{"id":"2", "roomName":"Copse","description":"The small forest is a natural home for some of the wolves.","connectedTo":["1"],"enemies":["1","1","1","1"],"width":"300","height":"300","x":"1650","y":"2200","firstVisit":"true","firstVisitDescription":"Surprisingly, rather than howling at you, the wolf barks aggressively."},
 			{"id":"3", "roomName":"Barn","description":"The barn is no different from any other.","connectedTo":["1","4"],"width":"250","height":"400","x":"1350","y":"1800"},
 			{"id":"4", "roomName":"Chicken coop","connectedTo":["3"],"width":"100","height":"50","x":"1450","y":"1750"},
 			{"id":"5", "roomName":"House", "description":"The house is in a state of disarray, and has a foul odour.","connectedTo":["1","6"],"enemies":["1","2"],"width":"300","height":"250","x":"1700","y":"1535"},
@@ -495,12 +495,12 @@
 
 		truePlayerWeapon = getJsonObjectById(player.weaponId,weapons);
 		var defeatedEnemies=[]
-		var activeEnemies = []
+		activeEnemies = []
 		for (let i = 0; i < enemies.length; i++) {
 			console.log(enemies[i]);
 			var enemyToFight = getJsonObjectById(enemies[i],enemyList);
+			console.log(enemyToFight);
 			var copy = structuredClone(enemyToFight);
-			console.log(copy);
 			activeEnemies.push(copy);
 		}
 		var startEnemies = structuredClone(activeEnemies);
@@ -515,24 +515,22 @@
 		$("#buttonMenu").append("<button class = 'combatButtons' id='flee'>"+"Flee the fighting"+"</button>");
 		$("#buttonMenu").append("<button class = 'combatButtons' id='taunt'>"+"Taunt"+"</button>");
 		$(".combatButtons").on("click",function(){
-			console.log($(this));
-			console.log($(this).prop("id"))
 			if($(this).prop("id")=="attack1"){
-				attack(player,activeEnemies[0])
+				attack(player,startEnemies[0])
 			}
 			if($(this).prop("id")=="attack2"){
-				attack(player,activeEnemies[1])
+				attack(player,startEnemies[1])
 			}
 			if($(this).prop("id")=="attack3"){
-				attack(player,activeEnemies[2])
+				attack(player,startEnemies[2])
 			}
 			if($(this).prop("id")=="attack4"){
-				attack(player,activeEnemies[3])
+				attack(player,startEnemies[3])
 			}
 		})
 
 		function attack(attacker,defender){
-
+			console.log(defender);
 			//var strengthDifference = attacker.strength-defender.strength
 			//var agilityDifference = attacker.agility-defender.agility
 			var agilityRoll = getRandomInt(attacker.agility);
@@ -591,16 +589,15 @@
 						//return to title screen
 					}
 					if (attacker==player){
-						for(var i = 0; i<activeEnemies.length;i++){
-							if(activeEnemies[i]==defender){
-								var removeIndex	= i
-							}
-						};
+						var removeIndex= activeEnemies.indexOf(defender);
 						writeLine(defender.name+" has been killed");
 						console.log(removeIndex);
-						activeEnemies.splice(removeIndex);
+						activeEnemies.splice(removeIndex,1);
 						console.log(activeEnemies);
+						console.log(defender);
+						console.log(startEnemies[removeIndex]);
 						if (defender.id == startEnemies[0].id){
+							console.log("attack1")
 							$("#attack1").remove()
 						}
 						else if (defender.id == startEnemies[1].id){
@@ -614,14 +611,14 @@
 							$("#attack4").remove()
 						}
 						defeatedEnemies.push(defender);
-						if (activeEnemies.length==0){
-							afterBattle();
-						}
+						console.log(activeEnemies.length);
+					if (activeEnemies.length==0){
+						afterBattle();
+					}
 					}
 				}
 		function afterBattle(){
 			activeEnemies=[];
-			console.log(activeEnemies);
 			console.log(defeatedEnemies);
 			$(".combatButtons").remove();
 			currentLocation.enemies = [];	
