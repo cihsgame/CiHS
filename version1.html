@@ -135,8 +135,8 @@
 	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
 
 <script type="text/javascript">
-	var rustySword = "sword"
-	var player = {name:"Player", strength:0, agility:0, intelligence:0, charisma:0, renown:0, gold:30, hp:0, race:"human", weaponId:"1"}; 
+
+	var player = {name:"Player", strength:0, agility:0, intelligence:0, charisma:0, renown:0, gold:30, maxHp:0, hp:0, race:"human", weaponId:"1"}; 
 	var currentRoom = "1";
 
 	//some important notes about dungeons
@@ -253,6 +253,8 @@
 			$(".characterCreation").append("<button id = 'statCheck'>"+"Verify your name and stats"+"</button>");
 			$("#statCheck").on("click", function(){
 				player.strength = Number(document.getElementById("strengthStart").value);
+				player.maxHp = player.strength * 10 +  1;
+				player.hp = player.maxHp;
 				player.agility = Number(document.getElementById("agilityStart").value);
 				player.intelligence = Number(document.getElementById("intelligenceStart").value);
 				player.charisma = Number(document.getElementById("charismaStart").value);
@@ -301,7 +303,7 @@
 	function startconversation(conversation, theName, originalCon) {
 
 		$('.conOptions').prop('disabled', true);
-
+x
 		if (conversation.hasOwnProperty("speaker") == true) {
 			//this also checks if it's the first part of the conversation
 			console.log("nametest");
@@ -501,6 +503,7 @@
 			var enemyToFight = getJsonObjectById(enemies[i],enemyList);
 			console.log(enemyToFight);
 			var copy = structuredClone(enemyToFight);
+			copy.tempId = i;
 			activeEnemies.push(copy);
 		}
 		var startEnemies = structuredClone(activeEnemies);
@@ -550,13 +553,13 @@
 			var realDamage = 0 //placeholder value
 			var damageString = "0"
 			if (RnJesus < 100) {
-				writeLine(attacker.name	+ " clumsily misses " + defender.name);
+				writeLine(attacker.name	+ " clumsily misses " + defender.name + " (" + defender.hp + " hp left)");
 			}
 			if (RnJesus >= 100 && RnJesus <= 300) {
 				realDamage=Math.floor(baseDamage/2)
 				damageString=realDamage.toString();
 				defender.hp=defender.hp-realDamage;
-				writeLine(attacker.name+" lands a glancing attack on "+defender.name+" and deals "+damageString+" damage");
+				writeLine(attacker.name+" lands a glancing attack on "+defender.name+" and deals "+damageString+" damage ("+defender.hp+" hp left)");
 				deathCheck();
 			}
 			if (RnJesus > 300 && RnJesus <= 700) {
@@ -564,23 +567,29 @@
 				console.log(realDamage);
 				damageString=realDamage.toString();
 				defender.hp=defender.hp-realDamage;
-				writeLine(attacker.name+" strikes "+defender.name+ " and deals " + damageString+" damage");
+				writeLine(attacker.name+" strikes "+defender.name+ " and deals " + damageString+" damage ("+defender.hp+" hp left)");
 				deathCheck();
 			}
 			if (RnJesus > 700 && RnJesus <= 900) {
 				realDamage=Math.floor(baseDamage*1.4);
 				damageString=realDamage.toString();
 				defender.hp=defender.hp-realDamage;
-				writeLine(attacker.name+" delivers a hard blow to "+defender.name+ " and deals " + damageString+" damage");
+				writeLine(attacker.name+" delivers a hard blow to "+defender.name+ " and deals " + damageString+" damage ("+defender.hp+" hp left)");
 				deathCheck();
 			}
 			if (RnJesus > 900) {
 				realDamage=baseDamage*2
 				damageString=realDamage.toString();
 				defender.hp=defender.hp-realDamage;
-				writeLine(attacker.name+" delivers a devastating blow to "+defender.name+ " and deals " + damageString+" damage");
+				writeLine(attacker.name+" delivers a devastating blow to "+defender.name+ " and deals " + damageString+" damage ("+defender.hp+" hp left)");
 				deathCheck();
 			}
+			if (attacker==player && activeEnemies.length>0){
+				for (i = 0; i<activeEnemies.length; i++) {
+					attack(activeEnemies[i],player);
+				}
+			}
+			
 			function deathCheck(){
 				if (defender.hp<0){
 					if (defender==player){
@@ -596,18 +605,18 @@
 						console.log(activeEnemies);
 						console.log(defender);
 						console.log(startEnemies[removeIndex]);
-						if (defender.id == startEnemies[0].id){
+						if (defender.tempId == 0){
 							console.log("attack1")
 							$("#attack1").remove()
 						}
-						else if (defender.id == startEnemies[1].id){
+						else if (defender.tempId == 1){
 							console.log("are we here")
 							$("#attack2").remove()
 						}
-						else if (defender.id == startEnemies[2].id){
+						else if (defender.tempId == 2){
 							$("#attack3").remove()
 						}
-						else if (defender.id == startEnemies[3].id){
+						else if (defender.tempId == 3){
 							$("#attack4").remove()
 						}
 						defeatedEnemies.push(defender);
