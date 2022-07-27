@@ -205,20 +205,24 @@
 	//ids only have to be unique within the conversation
 	//triggers refer to the effect that a conversation has
 	//
-	var drunkGuyCon1 = {"response":"What?",
-					"options":[
-						{"id":"1","text":"What?","response":"What?"},
-						{"id":"2","text":"How are you feeling?","response":"Drunk"}],"speaker":"The drunk"};
+	var conversations = [
+	{"id":"drunkGuyCon1","response":"What?",
+		"options":[
+			{"id":"1","text":"What?","response":"What?"},
+			{"id":"2","text":"How are you feeling?","response":"Drunk"}],"speaker":"The drunk"},
+	{"id":"dietritchCon1","response":"Hello. What brings you around these parts?",
+		"options":[
+			{"id":"1","text":"I was searching for some employment.","response":"Well, I do have quite a lot of dirty mugs.",
+				"options":[{"id":"1a","text":"Not exactly my trade.","redirect":"2"}]},
+			{"id":"2","text":"Would you happen to have some sort of contract for me?","response":"My friend Ulfgar needs some help on his family farmstead outside of the city. Apparently, a pack of wolves has overrun it and the authorities are too preoccupied to help. It used to be a good source of food for my tavern, so I can give you a hundred gold pieces if you clear it out.","options":[
+				{"id":"2a","text":"I accept your offer[starts quest].","triggers":{"quests":"firstMission"}},
+				{"id":"2b","text":"Only a hundred?","response":"You are not a proven adventurer."}]},
+			{"id":"3","text":"Thirst, my good man[ale costs 2 gold]","response":"Coming right up sir.","triggers":{"goldChange":-2}}
+		],"speaker":"Dietritch"},
+	{},
+	{}
+	]
 
-	var dietritchCon1 = {"response":"Hello. What brings you around these parts?",
-					"options":[
-						{"id":"1","text":"I was searching for some employment.","response":"Well, I do have quite a lot of dirty mugs.",
-							"options":[{"id":"1a","text":"Not exactly my trade.","redirect":"2"}]},
-						{"id":"2","text":"Would you happen to have some sort of contract for me?","response":"My friend Ulfgar needs some help on his family farmstead outside of the city. Apparently, a pack of wolves has overrun it and the authorities are too preoccupied to help. It used to be a good source of food for my tavern, so I can give you a hundred gold pieces if you clear it out.","options":[
-							{"id":"2a","text":"I accept your offer[starts quest].","triggers":{"quests":"firstMission"}},
-							{"id":"2b","text":"Only a hundred?","response":"You are not a proven adventurer."}]},
-						{"id":"3","text":"Thirst, my good man[ale costs 2 gold]","response":"Coming right up sir.","triggers":{"goldChange":-2}}
-					],"speaker":"Dietritch"};
 
 	function getRandomInt(max) {
     	return Math.floor(Math.random() * max);
@@ -229,8 +233,10 @@
 		}
 	}
 	function getJsonObjectById(searchId,object){
+		console.log(searchId);
 		for (let i = 0; i<object.length; i++) {
 			if (object[i].id == searchId) {
+				console.log(object[i].id);
 				console.log(object[i]);
 				return object[i];
 			}
@@ -303,7 +309,7 @@
 	function startconversation(conversation, theName, originalCon) {
 
 		$('.conOptions').prop('disabled', true);
-x
+
 		if (conversation.hasOwnProperty("speaker") == true) {
 			//this also checks if it's the first part of the conversation
 			console.log("nametest");
@@ -430,11 +436,12 @@ x
 
 		for (i in currentRoom.conversations) {
 			console.log(currentRoom.conversations);
-			var con = currentRoom.conversations[i];
-			var npc = eval(con+".speaker")
-			console.log(npc);
+			var conId = currentRoom.conversations[i];
+			var con = getJsonObjectById(conId,conversations);
+			var npc = con.speaker;
+			console.log(conId);
 			console.log(con);
-			$("#buttonMenu").append("<button class = 'conOptions' data-conname='"+con+"' data-npcname='"+npc+"'>"+"Speak to "+ npc + "</button>");
+			$("#buttonMenu").append("<button class = 'conOptions' data-conid='"+conId+"' data-npcname='"+npc+"'>"+"Speak to "+ npc + "</button>");
 		}
 
 		if (currentRoom.hasOwnProperty("enemies")==true && currentRoom.enemies.length>0){
@@ -476,21 +483,20 @@ x
 		});
 
 		$(".conOptions").on("click", function(){
-			console.log("hello there");
 			console.log($(this));
 			$("button.movementOptions").disabled = true;
 			$("button.majorMovementOptions").disabled = true;
 			$("button.conOptions").disabled = true;
-
-			var conName = $(this).data("conname");
-			console.log(conName);
+			console.log($(this).data("npcname"));
+			var conId = $(this).data("conid");
+			console.log(conId);
+			var con = getJsonObjectById(conId,conversations);
+			console.log(con);
 			var npcName = $(this).data("npcname");
 			console.log(npcName);
-			var rightCon = eval(conName);
-			startconversation(rightCon,npcName,rightCon);
+			startconversation(con,npcName,con);
 		});
-
-		
+	
 	}
 	function doBattle(enemies,currentLocation) {
 		console.log(enemies);
