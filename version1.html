@@ -73,24 +73,24 @@
 			right: 300px;
 			visibility: hidden;
 		}
-		#avatarBox {
+		#questLog {
 			background-color: lightgrey;
 			position: absolute;
-			width: 80px;
-			height: 80px;
+			width: 250px;
+			height: 240px;
 			border: 2px solid grey;
-			bottom: 50px;
-			right: 1025px;
+			bottom: 30px;
+			left: 30px;
 			visibility: hidden;
 		}
 		#playerInfo {
 			background-color: lightgrey;
 			position: absolute;
 			width: 150px;
-			height: 240px;
+			height: 275px;
 			border: 2px solid grey;
-			bottom: 50px;
-			Left: 1025px;
+			bottom: 0px;
+			Left: 946px;
 			visibility: hidden;
 		}
 		@media only screen and (max-width: 1199px) {
@@ -126,9 +126,8 @@
 		<div id="buttonMenu">
 			<div class="conOptions"></div>
 		</div>
-
-		<div id = avatarBox> </div>
-		<div id = playerInfo></div>
+		<div id="questLog"></div>
+		<div id = "playerInfo"></div>
 
 	</div>
 
@@ -136,7 +135,9 @@
 
 <script type="text/javascript">
 
-	var player = {name:"Player", strength:0, agility:0, intelligence:0, charisma:0, renown:0, gold:30, maxHp:0, hp:0, race:"human", weaponId:"1"}; 
+	var player = {name:"Player", level:1, strength:0, agility:0, intelligence:0, charisma:0, renown:0, gold:30, maxHp:0, hp:0, race:"human", weaponId:"1"}; 
+
+	var playerInv = [];
 	var currentRoom = "1";
 
 	//some important notes about dungeons
@@ -145,7 +146,8 @@
 	//y refers to the distance from the bottom of the map to the top of the room
 	//complete room property order: id->roomName->description->connectedTo->majorConnections->enemies->loot->width->height->x->y->special attributes
 
-	var dungeons = {"temple":{"rooms":[
+	var dungeons = [
+	{"id":"temple","rooms":[
 			{"id":"1","roomName":"Main Room","description":"The main room is tall and spacious, with several smaller rooms connected to it.","connectedTo":["2","3","4"],"firstTime":"True",
 				"width":"500","height":"500","x":"1550","y":"1550","monsters":[{},{},{}]},
 			{"id":"2", "roomName":"Storage room","description":"As would be expected, the storage room contains some food and monk robes, and contains a ladder to an attic above.","connectedTo":["1","5"],
@@ -157,7 +159,7 @@
 			{"id":"5", "roomName":"Attic","description":"The attic is musty and cramped.","connectedTo":["2"],"majorConnections":[{"connected":"templeUnderground","startingRoom":"4"}],
 				"width":"250","height":"350","x":"1275","y":"1625"}
 		], "firstVisit": "true", "firstVisitDescription":"You enter a temple which was clearly grand at one point. No worshippers are to be seen."},
-	"templeUnderground":{"rooms":[
+	{"id":"templeUnderground","rooms":[
 			{"id":"1","roomName":"Cellar","description":"The cellar is cramped compared to the main rooms of the temple. Nothing of value can be found.","connectedTo":["2","3","4"],"majorConnections":[{"connected":"temple","startingRoom":"3"}], "firstTime":"True",
 				"width":"300","height":"200","x":"1650","y":"1350"},
 			{"id":"2", "roomName":"Weapon cache","description":"Two long rows of weapon and armour racks line the walls. Most of the equipment has been looted, but a few rusty armaments remain.","connectedTo":["1"],
@@ -167,11 +169,11 @@
 			{"id":"4", "roomName":"Treasure Room","description":"Only a few empty chests and copper coins remain in the treasure room.","connectedTo":["1","3"],
 				"width":"400","height":"300","x":"1950","y":"1425"},
 		], "firstVisit": "true", "firstVisitDescription":"Upon closer inspection, you notice that two of the cellar's walls include doors to other rooms."},
-	"startingTavern":{"rooms":[
+	{"id":"startingTavern","rooms":[
 			{"id":"1", "roomName":"Drinking hall","description":"The main hall of the tavern is relatively spacious, although lacking in patrons at this time of the day.","connectedTo":[],"lockedConnections":["2"],"width":"300","height":"150","x":"1650","y":"1550", "conversations":["dietritchCon1","drunkGuyCon1"]},
 			{"id":"2", "roomName":"Bedroom","description":"The bedrooms are relatively clean, but spartan.","connectedTo":["1"],"width":"300","height":"120","x":"1350","y":"1535"}]
 		},
-	"farmstead":{"rooms":[
+	{"id":"farmstead","rooms":[
 			{"id":"1", "roomName":"Fields", "roomClass":"open","description":"The fields are severely overgrown.","connectedTo":["2","3","5","7"],"enemies":["1"],"width":"1200","height":"1200","x":"1200","y":"1200",},
 			{"id":"2", "roomName":"Copse","description":"The small forest is a natural home for some of the wolves.","connectedTo":["1"],"enemies":["1","1","1","1"],"width":"300","height":"300","x":"1650","y":"2200","firstVisit":"true","firstVisitDescription":"Surprisingly, rather than howling at you, the wolf barks aggressively."},
 			{"id":"3", "roomName":"Barn","description":"The barn is no different from any other.","connectedTo":["1","4"],"width":"250","height":"400","x":"1350","y":"1800"},
@@ -180,7 +182,7 @@
 			{"id":"6", "roomName":"Second floor","description":"The second floor of the house seems to have been the living space of Ulfgar's family.","connectedTo":["5"],"width":"275","height":"225","x":"1713","y":"1546","firstVisit":"true","firstVisitDescription":"You are horrified to discover three deformed skeletons lie upon torn, bloody sheets. This cannot be the work of any ordinary wolf."},
 			{"id":"7", "roomName":"Toolshed","description":"Unsurprisingly, the toolshed contains a few tools.","connectedTo":["1"],"width":"50","height":"30","x":"1350","y":"1400"}]
 		},
-	}
+	]
 	//(in)complete enemy property order: id->name->type->strength->agility->hp->weaponId->armour->gold->miscLoot->
 	var enemyList = [
 		{"id":"1","name":"wolf","type":"animal","strength":10,"agility":5,"hp":40,"miscLoot":"1"},
@@ -198,7 +200,7 @@
 		{"id":"1","name":"Wolf Pelt","value":10,"weight":5}
 	]
 	var activeEnemies=[]
-
+	var currentDungeon = "placeholder";
 	//Some important notes about conversations
 	//"responses" are what the NPC says 
 	//options.text is what the player says
@@ -216,13 +218,21 @@
 				"options":[{"id":"1a","text":"Not exactly my trade.","redirect":"2"}]},
 			{"id":"2","text":"Would you happen to have some sort of contract for me?","response":"My friend Ulfgar needs some help on his family farmstead outside of the city. Apparently, a pack of wolves has overrun it and the authorities are too preoccupied to help. It used to be a good source of food for my tavern, so I can give you a hundred gold pieces if you clear it out.","options":[
 				{"id":"2a","text":"I accept your offer[starts quest].","triggers":{"quests":"firstMission"}},
-				{"id":"2b","text":"Only a hundred?","response":"You are not a proven adventurer."}]},
+				{"id":"2b","text":"Only a hundred?","response":"You are not a proven adventurer."},
+				{"id":"2c","text":"I need to prepare first.","response":"Be seeing you then."}]},
 			{"id":"3","text":"Thirst, my good man[ale costs 2 gold]","response":"Coming right up sir.","triggers":{"goldChange":-2}}
 		],"speaker":"Dietritch"},
 	{},
 	{}
 	]
-
+	//quest property order:id->name->description->requirements->rew
+	var quests = [
+	{"id":"DietritchQuest1","name":"Humble beginnings","description":"You have been given the unexciting but dangerous task of exterminating the wolves on Ulfgar''s family farm","questType":"extermination","relatedDungeon":"farmstead"},
+	{},
+	{},
+	{},
+	{}
+	]
 
 	function getRandomInt(max) {
     	return Math.floor(Math.random() * max);
@@ -241,6 +251,9 @@
 				return object[i];
 			}
 		}
+	}
+	function writeLine(input){
+		$("#log").prepend("<p>"+input+"</p>");
 	}
 
 	function init1() {
@@ -297,15 +310,34 @@
 						$(".characterCreation").fadeOut(3000);
 						setTimeout(function(){
    							$(".characterCreation").empty();
-   							loadDungeon(dungeons.startingTavern, 1);
+   							loadDungeon("startingTavern", 1);
 						}, 3000);
 					})
+					$("#playerInfo").append("<p>"+player.name+"</p>");
+					$("#playerInfo").append("<p id= 'playerLevel'>"+"Level: "+player.level+"</p>");
+					$("#playerInfo").append("<p id= 'playerHealth'>"+"HP: "+player.hp+ "/"+player.maxHp+"</p>");
+					$("#playerInfo").append("<p id= 'playerStrength'>"+"Strength: "+player.strength+"</p>");
+					$("#playerInfo").append("<p id= 'playerAgility'>"+"Agility: "+player.agility+"</p>");
+					$("#playerInfo").append("<p id= 'playerIntelligence'>"+"Strength: "+player.intelligence+"</p>");
+					$("#playerInfo").append("<p id= 'playerCharisma'>"+"Strength: "+player.charisma+"</p>");
+					$("#playerInfo").append("<p id= 'playerGold'>"+"Gold: "+player.gold+"</p>");
+					$("#questLog").append("<p id='questName'>"+"No quest"+"</p>").css("text-align","center");
+					$("#questLog").append("<p id='questDesc'>"+"You currently haven't selected a quest."+"</p>").css("text-align","center");
 				}
 			})
 		});
 	}
 
+	var currentQuest = "none";
+	function newQuest(selectedQuest){
+		$("#questName").html(selectedQuest.name);
+		$("#questDesc").html(selectedQuest.description);
+		while (currentQuest==selectedQuest){
+			if (questConditionsFulfilled == true){
 
+			}
+		}
+	}
 	function startconversation(conversation, theName, originalCon) {
 
 		$('.conOptions').prop('disabled', true);
@@ -344,10 +376,11 @@
 				startconversation($(this).data("jsonoption"), theName, originalCon);
 				if($(this).data("jsonoption").hasOwnProperty("triggers")==true){
 					if($(this).data("jsonoption").triggers.quests == "firstMission"){
+
 						$("#log").prepend("<p>" +"As you approach the farmstead, you begin to notice the familiar signs of wolves." +"</p>")
 						$("#mapRooms").fadeOut(2000)	
 						setTimeout(function(){
-							loadDungeon(dungeons.farmstead,1)
+							loadDungeon("farmstead",1)
 							$("#mapRooms").fadeIn(1000)
 						},2000)					
 					}
@@ -385,9 +418,11 @@
 		});
 	};
 	}
-	function enterDungeon(dungeon, room) {
-
-		$(".conOptions").remove()
+	function enterDungeon(dungeon, room, previousRoom) {
+		$(".movementOptions").remove();
+		$(".majorMovementOptions").remove();
+		$(".combatButtons").remove();
+		$(".conOptions").remove();
 		activeEnemies=[];
 
 		//console.log(dungeon.firstVisit);
@@ -413,9 +448,12 @@
 		if (currentRoom.hasOwnProperty("description")==false){
 			$("#log").prepend("<p>" + "Nothing seems to be of interest in here." + "</p>");
 		}
+		if(currentRoom.hasOwnProperty("loot")==true){
+			$("#buttonMenu").prepend("<button id='loot'>"+"Search for valuables"+"</button>");
+		}
 
 		for (i in dungeon.rooms) {
-			if (currentRoom.connectedTo.includes(dungeon.rooms[i].id) == true) {
+			if (currentRoom.connectedTo.includes(dungeon.rooms[i].id) == true ) {
 				//console.log(dungeon.rooms[i])
 				$("#buttonMenu").prepend("<button class = 'movementOptions' id = "+i+">" + "Enter the " + dungeon.rooms[i].roomName + "</button>");
 			}
@@ -446,14 +484,13 @@
 
 		if (currentRoom.hasOwnProperty("enemies")==true && currentRoom.enemies.length>0){
 			console.log(currentRoom.enemies)
-			console.log(activeEnemies);
 			for (let i = 0; i <currentRoom.enemies.length; i++) {
 				activeEnemies.push(currentRoom.enemies[i]);
 				console.log(activeEnemies);
 			}
-			console.log(activeEnemies);
 			console.log(currentRoom);
-			doBattle(activeEnemies,currentRoom);
+			console.log(previousRoom);
+			doBattle(activeEnemies,dungeon,room,previousRoom);
 		}
 
 		$(".movementOptions").on("click", function(){
@@ -462,10 +499,10 @@
 			$("button.conOptions").remove();
 			var rightIdInt = parseInt($(this).attr("id"), 10)+1;
 			var rightId = rightIdInt.toString()
-			//console.log(rightId);
+			console.log(rightId);
 			$("button.movementOptions").remove();
 			$("button.majorMovementOptions").remove()
-			enterDungeon(dungeon, rightId);
+			enterDungeon(dungeon, rightId, room);
 		});
 
 		$(".majorMovementOptions").on("click", function(){
@@ -496,11 +533,25 @@
 			console.log(npcName);
 			startconversation(con,npcName,con);
 		});
+		$("#loot").on("click",function(){
+			if(currentRoom.hasOwnProperty("loot")==false){
+				writeLine("Nothing of worth can be found.");
+			}
+			else{
+				writeLine("You are rich.");
+			}
+		})
 	
 	}
-	function doBattle(enemies,currentLocation) {
+	function doBattle(enemies,dungeon,room,previousRoom) {
 		console.log(enemies);
-
+		$('.movementOptions').prop('disabled', true);
+		$('.majorMovementOptions').prop('disabled', true);
+		$('#loot').prop('disabled',true);
+		var currentLocation = dungeon.rooms[parseInt(room)-1];
+		console.log(dungeon);
+		console.log(currentLocation);
+		console.log(previousRoom);
 		truePlayerWeapon = getJsonObjectById(player.weaponId,weapons);
 		var defeatedEnemies=[]
 		activeEnemies = []
@@ -521,7 +572,9 @@
 			$("#buttonMenu").append("<button class = 'combatButtons' data-enemyId = "+theEnemy.id+" id="+'attack'+h+" data-enemy='hello'>"+"Attack "+theEnemy.name+"</button>");
 			//$("#buttonMenu").append("<button id=attack data-enemy='hello'>"+"Attack "+theEnemy.name+"</button>");
 		}
-		$("#buttonMenu").append("<button class = 'combatButtons' id='flee'>"+"Flee the fighting"+"</button>");
+		if(currentLocation.id != "1"){
+			$("#buttonMenu").append("<button class = 'combatButtons' id='flee'>"+"Flee the fighting"+"</button>");
+		}
 		$("#buttonMenu").append("<button class = 'combatButtons' id='taunt'>"+"Taunt"+"</button>");
 		$(".combatButtons").on("click",function(){
 			if($(this).prop("id")=="attack1"){
@@ -535,6 +588,39 @@
 			}
 			if($(this).prop("id")=="attack4"){
 				attack(player,startEnemies[3])
+			}
+		})
+		$("#flee").on("click",function(){
+			var playerFleeScore = player.agility + Math.floor(player.intelligence/3);
+			var antiFleeScore = 0;
+			for (let i = 0; i < activeEnemies.length; i++) {
+				antiFleeScore = antiFleeScore + activeEnemies[i].agility
+			}
+			antiFleeScore = Math.floor(antiFleeScore/(1+0.2*activeEnemies.length));
+			var fleeScore = playerFleeScore-antiFleeScore;
+			var fleeAttemptOutcome = getRandomInt(50)+fleeScore;
+			preventNegative(fleeAttemptOutcome);
+			if(fleeAttemptOutcome<5){				
+				writeLine("You fail your attempt to flee, and " + activeEnemies[0].name + " manages to strike you!");
+				attack(activeEnemies[0],player);
+			}
+			if(fleeAttemptOutcome>=5 && fleeAttemptOutcome < 15){
+				writeLine("You are unable to flee, and your foe manages to obstruct your path of escape!");
+				$("#flee").remove();
+			}
+			if (fleeAttemptOutcome>=15 && fleeAttemptOutcome < 25){
+				writeLine("The enemy prevents you from fleeing, but you are unharmed.");
+			}
+			if(fleeAttemptOutcome>=25 && fleeAttemptOutcome < 35){
+				writeLine("You manage to flee, but are struck by " + activeEnemies[0].name + " on your way out.");
+				attack(activeEnemies[0],player);
+				enterDungeon(dungeon,previousRoom,room);
+				activeEnemies=[];
+			}
+			if(fleeAttemptOutcome>=35){
+				writeLine("You successfully escape.")
+				enterDungeon(dungeon,previousRoom,room);
+				activeEnemies=[];
 			}
 		})
 
@@ -558,6 +644,13 @@
 			preventNegative(RnJesus);
 			var realDamage = 0 //placeholder value
 			var damageString = "0"
+			if (attacker==player){
+				for (i in activeEnemies) {
+					if (activeEnemies[i]==defender){
+						defender=activeEnemies[i];
+					}
+				}
+			}
 			if (RnJesus < 100) {
 				writeLine(attacker.name	+ " clumsily misses " + defender.name + " (" + defender.hp + " hp left)");
 			}
@@ -595,6 +688,10 @@
 					attack(activeEnemies[i],player);
 				}
 			}
+			if (defender==player){
+				$("#playerHealth").html(player.hp+"/"+player.maxHp);
+			}
+
 			
 			function deathCheck(){
 				if (defender.hp<0){
@@ -607,6 +704,7 @@
 						var removeIndex= activeEnemies.indexOf(defender);
 						writeLine(defender.name+" has been killed");
 						console.log(removeIndex);
+						currentLocation.enemies.splice(removeIndex,1);
 						activeEnemies.splice(removeIndex,1);
 						console.log(activeEnemies);
 						console.log(defender);
@@ -634,52 +732,60 @@
 				}
 		function afterBattle(){
 			activeEnemies=[];
+			currentLocation.enemies=[];
+			console.log(currentLocation.enemies);
 			console.log(defeatedEnemies);
-			$(".combatButtons").remove();
-			currentLocation.enemies = [];	
+			$(".combatButtons").remove();	
 			writeLine("You have emerged victorious.");
 			for (var i = 0; i<defeatedEnemies.length; i++){
 				var deadEnemy = defeatedEnemies[i];
 				//var removedEnemy = getJsonObjectById(deadEnemy,activeEnemies)
 				if(currentLocation.hasOwnProperty("loot")==true){
-					console.log(currentLocation.deadEnemy.miscLoot)
+					console.log("hello");
 				}
 				if(currentLocation.hasOwnProperty("loot")==false){
 					currentLocation.loot=[]
-					if(deadEnemy.hasOwnProperty("items")){
+					console.log(deadEnemy);
+					if(deadEnemy.hasOwnProperty("miscLoot")==true){
 						currentLocation.loot.push(deadEnemy.miscLoot);
 					}
-					if(deadEnemy.hasOwnProperty("weapon")){
+					if(deadEnemy.hasOwnProperty("weapon")==true){
 						currentLocation.loot.push(deadEnemy.weapon);
 					}
 				}
 			}
-			$("#lootButton")
+			console.log(currentLocation.loot);
+			$('.movementOptions').prop('disabled', false);
+			$('.majorMovementOptions').prop('disabled', false);
+			$("#loot").prop('disabled',false);
 			}
 			}
 		}
 	}
-	function writeLine(input){
-		$("#log").prepend("<p>"+input+"</p>");
-	}
+	
 	function loadDungeon(dungeon,roomId){
 		$("#mapRooms").empty();
 		$("#mapRooms").css("visibility", "visible");
 		$("#map").css("visibility", "visible");
 		$("#log").css("visibility", "visible");
 		$("#buttonMenu").css("visibility", "visible");
-		$("#avatarBox").css("visibility", "visible");
+		$("#questLog").css("visibility", "visible");
 		$("#playerInfo").css("visibility", "visible");
+
 		//$("#mapRooms").fadeOut(1);
-		for (i in dungeon.rooms) {
+		var dungeonId = dungeon;
+		console.log(dungeonId);
+		var renderedDungeon = getJsonObjectById(dungeonId,dungeons);
+		console.log(renderedDungeon);
+		for (i in renderedDungeon.rooms) {
 			//console.log(dungeon.rooms[i].id);
 			//console.log(dungeon.rooms[i].roomName);
 			//console.log(dungeon.rooms[i].connectedTo)
 			// //console.log(currentRoom.connectedTo.includes(dungeon.rooms[i].id))
-			renderRoom(dungeon.rooms[i]);
+			renderRoom(renderedDungeon.rooms[i]);
 		}
 		//$("#mapRooms").fadeIn(500);
-		enterDungeon(dungeon, roomId);	
+		enterDungeon(renderedDungeon, roomId);	
 	}
 	
 
