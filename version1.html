@@ -135,7 +135,7 @@
 
 <script type="text/javascript">
 
-	var player = {name:"Player", level:1, strength:0, agility:0, intelligence:0, charisma:0, renown:0, gold:30, maxHp:0, hp:0, race:"human", weaponId:"1"}; 
+	var player = {name:"Player", level:1, strength:0, agility:0, intelligence:0, charisma:0, renown:0, gold:30, maxHp:0, hp:0, race:"human", weaponId:"1", quest:"none"}; 
 
 	var playerInv = [];
 	var currentRoom = "1";
@@ -222,10 +222,16 @@
 				{"id":"2c","text":"I need to prepare first.","response":"Be seeing you then."}]},
 			{"id":"3","text":"Thirst, my good man[ale costs 2 gold]","response":"Coming right up sir.","triggers":{"goldChange":-2}}
 		],"speaker":"Dietritch"},
-	{},
+	{"id":"dietritchCon2","response":"Hello again. Have you cleared out the farmstead?",
+		"options":[
+			{"id":"1","text":"I have.","response":"Thank you for your assistance. Here is your gold, as promised.","triggers":{"goldChange":100}},
+			{"id":"2","text":"Yes, and it was terrible.","redirect":"1a"}
+
+
+		],"speaker":"Dietritch"},
 	{}
 	]
-	//quest property order:id->name->description->requirements->rew
+	//quest property order:id->name->description->requirements->relatedDungeon->completed
 	var quests = [
 	{"id":"DietritchQuest1","name":"Humble beginnings","description":"You have been given the unexciting but dangerous task of exterminating the wolves on Ulfgar's family farm","questType":"extermination","relatedDungeon":"farmstead"},
 	{},
@@ -330,23 +336,31 @@
 
 	var currentQuest = "none";
 	function newQuest(selectedQuest){
+		var theQuest = getJsonObjectById(selectedQuest,quests);
+		$("#questName").html(theQuest.name);
+		$("#questDesc").html(theQuest.description);
+		player.quest = selectedQuest;
+	}
+	function questCheck(selectedQuest){
 		var quest = getJsonObjectById(selectedQuest,quests);
+		console.log(quest);
 		$("#questName").html(quest.name);
 		$("#questDesc").html(quest.description);
-		if (quest.questType == "extermination"){
+		if (quest.questType === "extermination"){
 			var remainingEnemies = 0;
 			for(i in quest.relatedDungeon.rooms){
 				if (quest.relatedDungeon.rooms[i].hasOwnProperty("enemies")==true){
 					remainingEnemies=remainingEnemies+quest.relatedDungeon.rooms[i].enemies.length
 				}
 			}
-			while (remainingEnemies>0){
-				
-			}
 			if(remainingEnemies===0){
-
+				$("questLog").append("<p>"+"Congratulations, hero. You slew the wolves."+"</p>")
+				if(quest.id == "DietritchQuest1"){
+					dungeons.startingTavern.conversations.append("dietritchCon2");
+					dungeons.startingTavern.conversations.append("ulfgarCon1");
+					dungeons.startingTavern.conversations.remove("dietritchCon1");
+				}
 			}
-			$("#questLog").append("<p>"+"Remaining enemies: "+remainingEnemies+"</p>")
 		}
 	}
 	function startconversation(conversation, theName, originalCon) {
@@ -771,6 +785,7 @@
 			$("#loot").prop('disabled',false);
 			}
 			}
+			questCheck(player.quest);
 		}
 	}
 	
