@@ -226,14 +226,12 @@
 		"options":[
 			{"id":"1","text":"I have.","response":"Thank you for your assistance. Here is your gold, as promised.","triggers":{"goldChange":100}},
 			{"id":"2","text":"Yes, and it was terrible.","redirect":"1a"}
-
-
 		],"speaker":"Dietritch"},
 	{}
 	]
 	//quest property order:id->name->description->requirements->relatedDungeon->completed
 	var quests = [
-	{"id":"DietritchQuest1","name":"Humble beginnings","description":"You have been given the unexciting but dangerous task of exterminating the wolves on Ulfgar's family farm","questType":"extermination","relatedDungeon":"farmstead"},
+	{"id":"DietritchQuest1","name":"Humble beginnings","description":"You have been given the unexciting but dangerous task of exterminating the wolves on Ulfgar's family farm","questType":"extermination","relatedDungeon":"farmstead","returnDungeon":"startingTavern"},
 	{},
 	{},
 	{},
@@ -270,7 +268,8 @@
 			player.name = document.getElementById("name").value;
 			$("#nameCheck").remove();
 			console.log(player);
-			$(".characterCreation").append("<p>"+""+"</p>")
+			$(".characterCreation").append("<p>"+""+"</p>");
+			$(".characterCreation").append("<p>"+"Enter your statistics. Ensure that they add up to 20 and that none of the values are negative."+"</p>");
 			$(".characterCreation").append("<input id = 'strengthStart' type = 'number' placeholder = 'starting strength'></input>","<br>");
 			$(".characterCreation").append("<input id = 'agilityStart' type = 'number' placeholder = 'starting agility'></input>","<br>");
 			$(".characterCreation").append("<input id = 'intelligenceStart' type = 'number' placeholder = 'starting intelligence'></input>","<br>");
@@ -343,24 +342,35 @@
 	}
 	function questCheck(selectedQuest){
 		var quest = getJsonObjectById(selectedQuest,quests);
+		var dungeon = getJsonObjectById(quest.relatedDungeon,dungeons);
+		var remainingEnemies = 0;	
 		console.log(quest);
 		$("#questName").html(quest.name);
 		$("#questDesc").html(quest.description);
 		if (quest.questType === "extermination"){
-			var remainingEnemies = 0;
-			for(i in quest.relatedDungeon.rooms){
-				if (quest.relatedDungeon.rooms[i].hasOwnProperty("enemies")==true){
-					remainingEnemies=remainingEnemies+quest.relatedDungeon.rooms[i].enemies.length
+			for(i in dungeon.rooms){
+				if (dungeon.rooms[i].hasOwnProperty("enemies")==true){
+					remainingEnemies=remainingEnemies+dungeon.rooms[i].enemies.length;
 				}
+				console.log(remainingEnemies);
 			}
 			if(remainingEnemies===0){
-				$("questLog").append("<p>"+"Congratulations, hero. You slew the wolves."+"</p>")
+				$("#questLog").append("<p>"+"Quest complete."+"</p>");
 				if(quest.id == "DietritchQuest1"){
-					dungeons.startingTavern.conversations.append("dietritchCon2");
-					dungeons.startingTavern.conversations.append("ulfgarCon1");
-					dungeons.startingTavern.conversations.remove("dietritchCon1");
+					dungeons[2].rooms[0].conversations.push("dietritchCon2");
+					dungeons[2].rooms[0].conversations.push("ulfgarCon1");
+					dungeons[2].rooms[0].conversations.splice("dietritchCon1",1);
 				}
+				if ($('#returnToQuestGiver').length === 0) {
+					$("#buttonMenu").append("<button id ='returnToQuestGiver'>"+"Return to the quest giver."+"</button>");	
+				}
+				quest.completed=true;
+				console.log(quest);
 			}
+			
+			$("#returnToQuestGiver").on("click",function(){
+				loadDungeon(quest.returnDungeon,"1");
+			})
 		}
 	}
 	function startconversation(conversation, theName, originalCon) {
