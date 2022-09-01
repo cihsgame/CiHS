@@ -107,6 +107,16 @@
   		    left: 0px;
   		    max-width: 200px;
 		}
+		#lootMenu {
+			background-color: lightgrey;
+			position: absolute;
+			width: 600px;
+			height: 150px;
+			border: 2px solid black;
+			top: 615px;
+			right: 300px;
+			visibility: hidden;
+		}
 		}
 	</style>
 </head>
@@ -128,7 +138,7 @@
 		</div>
 		<div id="questLog"></div>
 		<div id = "playerInfo"></div>
-
+		<div id ="lootMenu"></div>
 	</div>
 
 	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
@@ -460,19 +470,22 @@
 		$(".conOptions").remove();
 		activeEnemies=[];
 
+		$("#loot").remove();
+		$("#buttonMenu").prepend("<button id='loot'>"+"Search for valuables"+"</button>");
+
 		//console.log(dungeon.firstVisit);
 		if (dungeon.firstVisit=="true") {
 			$("#log").prepend("<p>" + dungeon.firstVisitDescription + "</p>");
 			dungeon.firstVisit="false"
 		}
-		console.log(room)
-		var currentRoom = dungeon.rooms[room-1];
+		console.log(room);
+		var currentRoom=1;
+		currentRoom = dungeon.rooms[room-1];
 		console.log(currentRoom);
 		centerOnRoom(currentRoom);
 		$("#r_"+room).addClass("roomActive");
 		$(".roomActive").removeClass("previousRoom");
 		//console.log(currentRoom);
-		console.log(currentRoom.hasOwnProperty("roomClass"));
 		if(currentRoom.hasOwnProperty("roomClass")==true){
 			$(".roomActive").css("background-color","green")
 		}
@@ -482,9 +495,6 @@
 		}
 		if (currentRoom.hasOwnProperty("description")==false){
 			$("#log").prepend("<p>" + "Nothing seems to be of interest in here." + "</p>");
-		}
-		if(currentRoom.hasOwnProperty("loot")==true){
-			$("#buttonMenu").prepend("<button id='loot'>"+"Search for valuables"+"</button>");
 		}
 
 		for (i in dungeon.rooms) {
@@ -569,10 +579,13 @@
 			startconversation(con,npcName,con);
 		});
 		$("#loot").on("click",function(){
-			if(currentRoom.hasOwnProperty("loot")==false){
+			console.log(currentRoom);
+			console.log(currentRoom.hasOwnProperty("loot"));
+			if(currentRoom.hasOwnProperty("loot")==false || currentRoom.loot.length === 0) {
 				writeLine("Nothing of worth can be found.");
 			}
-			else{
+			if(currentRoom.hasOwnProperty("loot")==true && currentRoom.loot.length > 0){
+				$("#lootMenu").css("visibility","visible");
 				writeLine("You are rich.");
 			}
 		})
@@ -651,11 +664,13 @@
 				attack(activeEnemies[0],player);
 				enterDungeon(dungeon,previousRoom,room);
 				activeEnemies=[];
+				$("#loot").prop('disabled',false);
 			}
 			if(fleeAttemptOutcome>=35){
 				writeLine("You successfully escape.")
 				enterDungeon(dungeon,previousRoom,room);
 				activeEnemies=[];
+				$("#loot").prop('disabled',false);
 			}
 		})
 
@@ -814,12 +829,9 @@
 		var renderedDungeon = getJsonObjectById(dungeonId,dungeons);
 		console.log(renderedDungeon);
 		for (i in renderedDungeon.rooms) {
-			//console.log(dungeon.rooms[i].id);
-			//console.log(dungeon.rooms[i].roomName);
-			//console.log(dungeon.rooms[i].connectedTo)
-			// //console.log(currentRoom.connectedTo.includes(dungeon.rooms[i].id))
 			renderRoom(renderedDungeon.rooms[i]);
 		}
+
 		//$("#mapRooms").fadeIn(500);
 		enterDungeon(renderedDungeon, roomId);	
 	}
